@@ -1,5 +1,7 @@
+import type { CompletedTrade } from '../api'
 import { Button } from '@/components/ui/button'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
+import { PriceChart } from '../components/PriceChart'
 import { SelectField } from '../components/SelectField'
 import { StatusPill } from '../components/StatusPill'
 import { SEED, type Flow } from '../flow/useFlow'
@@ -7,6 +9,21 @@ import { plural, signedUsd, usd } from '../lib/format'
 import { pnlTone, summarize } from '../lib/summary'
 import { fixtureLabel, FIXTURES } from './fixtures'
 import { DecisionLog, Kpi, SessionTimeline } from './results'
+
+/** How the trades ended, read off their exit legs: "2 closed · 2 at stop · 0 at target" (a trade that took the target
+ *  on one contract and stopped on the other counts in both). Outcomes, not a win rate. */
+function exitWords(trades: CompletedTrade[]) {
+  if (trades.length === 0) return 'no entries'
+  const reasons = trades.map((t) => (t.legs ?? []).map((l) => l.exit_reason))
+  const count = (match: string[]) => reasons.filter((r) => r.some((x) => match.includes(x))).length
+  const cutoff = count(['CUTOFF_EXIT'])
+  return [
+    `${trades.length} closed`,
+    `${count(['STOP_HIT', 'AMBIGUOUS_BAR_STOP_FIRST'])} at stop`,
+    `${count(['TARGET_PARTIAL_EXIT'])} at target`,
+    ...(cutoff ? [`${cutoff} at cutoff`] : []),
+  ].join(' · ')
+}
 
 export function SimulateStep({ flow }: { flow: Flow }) {
   const { fixture, runs, running, approved } = flow
@@ -83,9 +100,7 @@ export function SimulateStep({ flow }: { flow: Flow }) {
                 value={
                   <>
                     {s.trades}{' '}
-                    <span className="ta-small ta-muted">
-                      ({s.wins} won · {s.losses} lost)
-                    </span>
+                    <span className="ta-small ta-muted">({exitWords(run.state.completed_trades)})</span>
                   </>
                 }
               />
@@ -99,7 +114,8 @@ export function SimulateStep({ flow }: { flow: Flow }) {
           </Card>
 
           <Card title="What the engine did" right={<span className="ta-mono text-meta ta-muted">{run.state.simulation_id}</span>}>
-            <div className="ta-card__body">
+            <div className="ta-card__body ta-stack">
+              <PriceChart run={run} spec={spec} />
               <SessionTimeline run={run} cutoff={spec.session.cutoff_local} />
             </div>
           </Card>

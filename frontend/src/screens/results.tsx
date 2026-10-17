@@ -1,141 +1,97 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { AuditEvent } from '../api'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusPill } from '../components/StatusPill'
 import { Term } from '../components/Term'
 import type { RunResult } from '../flow/useFlow'
+import { clock, minutesOf, PLOT, sessionWindow, useWidth } from '../lib/chart'
 import { hhmm } from '../lib/format'
 import { isRoutine } from '../lib/summary'
 
-// ---------- Session timeline ----------
-// The API returns no candles, so this draws what the engine did over the session clock, not a price
-// chart. Trade spans run from entry to the last exit leg and are coloured by their realized result.
+// ---------- Trade strip ----------
+// A thin strip under the price chart, on the same time axis (lib/chart): when a position was open and how
+// each trade closed, in words. The chart above carries the prices, every bar check and the exit markers.
 
-const minutes = (ts: string) => {
-  const [h, m] = hhmm(ts).split(':').map(Number)
-  return h * 60 + m
-}
+const outcome = (pnl: number) =>
+  pnl > 0
+    ? { word: 'PROFIT', fill: 'var(--ledger)' }
+    : pnl < 0
+      ? { word: 'LOSS', fill: 'var(--blocked)' }
+      : { word: 'FLAT', fill: 'var(--ink-muted)' }
 
-function useWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [width, setWidth] = useState(760)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const ro = new ResizeObserver(([entry]) => setWidth(Math.max(300, Math.round(entry.contentRect.width))))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-  return [ref, width] as const
+/** Labels go above the bar; one that would touch the previous label above drops below instead. */
+function placeLabels(centres: number[]) {
+  let lastAbove = -Infinity
+  return centres.map((cx) => {
+    const above = cx - lastAbove > 52
+    if (above) lastAbove = cx
+    return { cx, above }
+  })
 }
 
 export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: string }) {
   const [ref, W] = useWidth<HTMLDivElement>()
-  const [ch, cm] = cutoff.split(':').map(Number)
-  const end = ch * 60 + cm
-  const L = 16
-  const R = 16
-  const H = 132
-  const axisY = 70
-  // Start an hour before the first decision that matters (the engine warms up on early candles).
-  const firstKey = run.events.filter((e) => !isRoutine(e) && e.category !== 'SESSION').map((e) => minutes(e.timestamp))
-  const start = Math.min(9 * 60 + 30, firstKey.length ? Math.floor(Math.min(...firstKey) / 60) * 60 - 60 : 9 * 60 + 30)
-  const x = (t: number) => L + ((Math.max(start, t) - start) / (end - start)) * (W - L - R)
+  const { start, end } = sessionWindow(run, cutoff)
+  const L = PLOT.left
+  const R = PLOT.right
+  const H = 46
+  const axisY = 24
+  const x = (t: number) => L + ((Math.min(end, Math.max(start, t)) - start) / (end - start)) * (W - L - R)
 
   const spans = run.state.completed_trades
     .filter((t) => t.entry_time && t.legs?.length)
-    .map((t) => ({
-      from: minutes(t.entry_time!),
-      to: minutes(t.legs![t.legs!.length - 1].exit_time),
-      pnl: t.realized_pnl_usd,
-    }))
+    .map((t) => ({ from: minutesOf(t.entry_time!), to: minutesOf(t.legs![t.legs!.length - 1].exit_time), pnl: t.realized_pnl_usd }))
   const lock = run.events.find((e) => e.actual_action === 'LOCK_ENTRIES')
-  const hours = Array.from({ length: Math.floor((end - start) / 60) + 1 }, (_, i) => Math.ceil(start / 60) * 60 + i * 60).filter(
-    (t) => t > start && t < end,
-  )
-  const step = W < 520 ? 2 : 1
+  const blocks = run.events.filter((e) => e.actual_action === 'BLOCK_ENTRY')
+  const labels = placeLabels(spans.map((s) => (x(s.from) + Math.max(x(s.to), x(s.from) + 3)) / 2))
+  const anchor = (cx: number) => (cx > W - R - 26 ? 'end' : cx < L + 26 ? 'start' : 'middle')
+  const description =
+    (spans.length
+      ? `In a trade ${spans.length} ${spans.length === 1 ? 'time' : 'times'}: ${spans
+          .map((s) => `${clock(s.from)} to ${clock(s.to)} ${s.pnl > 0 ? 'closed at a profit' : s.pnl < 0 ? 'closed at a loss' : 'closed flat'}`)
+          .join('; ')}.`
+      : 'No position was opened this session.') +
+    (lock ? ` Entries locked from ${clock(minutesOf(lock.timestamp))}.` : '') +
+    (blocks.length ? ` ${blocks.length} blocked entry ${blocks.length === 1 ? 'signal' : 'signals'}.` : '')
 
   return (
-    <div ref={ref}>
-      <svg
-        className="ta-timeline"
-        width={W}
-        height={H}
-        viewBox={`0 0 ${W} ${H}`}
-        role="img"
-        aria-label="Session timeline of entries, exits, the loss lock and blocked entries"
-      >
+    <div ref={ref} className="flex flex-col gap-1">
+      <span className="ta-label">Time in a trade</span>
+      <svg className="ta-timeline" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={description}>
         {lock && (
-          <g>
-            <rect x={x(minutes(lock.timestamp))} y={22} width={x(end) - x(minutes(lock.timestamp))} height={78} fill="var(--blocked-soft)" />
-            <text x={x(minutes(lock.timestamp)) + 6} y={36} className="ta-svg-label" fill="var(--blocked)">
-              ENTRIES LOCKED
-            </text>
-          </g>
+          <rect x={x(minutesOf(lock.timestamp))} y={0} width={Math.max(0, x(end) - x(minutesOf(lock.timestamp)))} height={H} fill="var(--blocked-soft)" />
         )}
-        <line x1={L} x2={W - R} y1={axisY} y2={axisY} stroke="var(--line)" strokeWidth="2" />
-        {spans.map((s, i) => (
-          <rect
-            key={i}
-            x={x(s.from)}
-            y={axisY - 4}
-            width={Math.max(2, x(s.to) - x(s.from))}
-            height={8}
-            rx={2}
-            fill={s.pnl < 0 ? 'var(--blocked)' : 'var(--ledger)'}
-            opacity={0.85}
-          />
-        ))}
-        {run.events.map((e) => {
-          const cx = x(minutes(e.timestamp))
-          const k = e.event_id
-          switch (e.actual_action) {
-            case 'OPEN_LONG':
-              return <circle key={k} cx={cx} cy={axisY} r={6} fill="var(--ledger)" stroke="var(--panel)" strokeWidth={2} />
-            case 'EXIT_STOP':
-              return <rect key={k} x={cx - 5} y={axisY - 5} width={10} height={10} fill="var(--blocked)" stroke="var(--panel)" strokeWidth={1.5} />
-            case 'EXIT_PARTIAL':
-            case 'EXIT_CUTOFF':
-              return <circle key={k} cx={cx} cy={axisY} r={6} fill="var(--panel)" stroke="var(--compliant)" strokeWidth={2.5} />
-            case 'BLOCK_ENTRY':
-              return (
-                <g key={k} stroke="var(--blocked)" strokeWidth={2.5}>
-                  <line x1={cx - 6} y1={axisY - 6} x2={cx + 6} y2={axisY + 6} />
-                  <line x1={cx + 6} y1={axisY - 6} x2={cx - 6} y2={axisY + 6} />
-                  <text x={cx} y={axisY + 24} textAnchor="middle" className="ta-svg-label" fill="var(--blocked)" stroke="none">
-                    BLOCKED
-                  </text>
-                </g>
-              )
-            case 'NO_TRADE':
-              // ~75 routine checks per session: faint ticks, so they read as texture, not events.
-              return <line key={k} x1={cx} x2={cx} y1={axisY - 5} y2={axisY + 5} stroke="var(--ink-muted)" strokeWidth={1} opacity={0.35} />
-            default:
-              return null
-          }
+        <line x1={L} x2={W - R} y1={axisY} y2={axisY} stroke="var(--line)" strokeWidth={2} />
+        {spans.map((s, i) => {
+          const o = outcome(s.pnl)
+          const { cx, above } = labels[i]
+          return (
+            <g key={i}>
+              <rect x={x(s.from)} y={axisY - 5} width={Math.max(3, x(s.to) - x(s.from))} height={10} rx={2} fill={o.fill} />
+              <text x={cx} y={above ? axisY - 10 : axisY + 19} textAnchor={anchor(cx)} className="ta-svg-label" fill={o.fill}>
+                {o.word}
+              </text>
+            </g>
+          )
         })}
-        {hours.map((t, i) =>
-          i % step === 0 && x(t) - x(start) > 44 && x(end) - x(t) > 44 ? (
-            <text key={t} x={x(t)} y={H - 8} textAnchor="middle" className="ta-svg-axis" fill="var(--ink-muted)">
-              {`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`}
-            </text>
-          ) : null,
-        )}
-        <text x={L} y={H - 8} className="ta-svg-axis" fill="var(--ink-muted)">
-          {`${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`}
-        </text>
-        <text x={W - R} y={H - 8} textAnchor="end" className="ta-svg-axis" fill="var(--ink-muted)">
-          {cutoff}
-        </text>
+        {blocks.map((e) => {
+          const cx = x(minutesOf(e.timestamp))
+          return (
+            <g key={e.event_id} stroke="var(--blocked)" strokeWidth={2} strokeLinecap="round">
+              <line x1={cx - 4} y1={axisY - 4} x2={cx + 4} y2={axisY + 4} />
+              <line x1={cx + 4} y1={axisY - 4} x2={cx - 4} y2={axisY + 4} />
+            </g>
+          )
+        })}
       </svg>
-      <div className="ta-legend">
-        <span><i style={{ background: 'var(--ledger)', borderRadius: '50%' }} />Entry</span>
-        <span><i style={{ background: 'var(--blocked)' }} />Stopped out</span>
-        <span><i style={{ border: '2.5px solid var(--compliant)', borderRadius: '50%' }} />Profit or cutoff exit</span>
-        <span><i style={{ background: 'var(--ink-muted)', width: 2 }} />No trade (rule not met)</span>
-        <span><b className="text-blocked">✕</b> Entry blocked</span>
-        <span>Bars: time in a trade, green = win, orange = loss</span>
+      <div className="ta-legend" style={{ padding: 0 }}>
+        {spans.length === 0 && <span>No position was opened this session.</span>}
+        {spans.some((s) => s.pnl > 0) && <span><i style={{ background: 'var(--ledger)' }} />PROFIT: closed at a profit</span>}
+        {spans.some((s) => s.pnl < 0) && <span><i style={{ background: 'var(--blocked)' }} />LOSS: closed at a loss</span>}
+        {spans.some((s) => s.pnl === 0) && <span><i style={{ background: 'var(--ink-muted)' }} />FLAT: closed at break-even</span>}
+        {blocks.length > 0 && <span><b className="text-blocked">✕</b> Entry blocked</span>}
+        {lock && <span><i style={{ background: 'var(--blocked-soft)', outline: '1px solid var(--blocked)' }} />Entries locked</span>}
       </div>
     </div>
   )
