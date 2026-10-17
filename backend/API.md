@@ -24,6 +24,29 @@ returns the same version, but any edit, any Nicrron result and any failed free-t
 version, so the preset is not guaranteed to be version 1.
 State is in memory: after a backend restart, repeat steps 2–3.
 
+## Remote access (public demo tunnel)
+
+When B exposes the backend through a Cloudflare Quick Tunnel, the base URL is a temporary
+`https://<random>.trycloudflare.com` (it changes every time the tunnel restarts) and a demo token is on:
+
+- Send `X-Demo-Token: <token>` on **every** request except `GET /api/health`. B sends you the token
+  privately; never commit it. Missing or wrong token → `401 {"error":{"code":"UNAUTHORIZED",
+  "message":"Missing or invalid X-Demo-Token header","field":"X-Demo-Token"}}`.
+- CORS allows exactly the origin `http://localhost:5173` (open the app at that URL, not `127.0.0.1:5173`)
+  and only the request headers `Content-Type` and `X-Demo-Token`.
+- `/docs`, `/redoc` and `/openapi.json` return 404 while the token is on.
+- Paid Nicrron calls are capped (default 20 per hour, 1 at a time). Over the cap, generate returns the
+  labeled fallback with `nicrron.error_code` `NICRRON_BUDGET_EXCEEDED` (with `retry_after` seconds) or
+  `NICRRON_BUSY`; nothing else changes.
+
+Frontend setup (Vite), in A's local, git-ignored `.env.local`:
+```bash
+VITE_API_BASE_URL=https://<random>.trycloudflare.com
+VITE_DEMO_TOKEN=<token from B>
+```
+and in the single fetch helper: `headers: {"Content-Type": "application/json", "X-Demo-Token": import.meta.env.VITE_DEMO_TOKEN}`.
+With the token off (local development), the header is simply ignored.
+
 ## Errors (all routes)
 
 ```json
@@ -33,6 +56,7 @@ State is in memory: after a backend restart, repeat steps 2–3.
 | HTTP | code | When |
 |---|---|---|
 | 400 | `UNKNOWN_TEMPLATE`, `OVERRIDE_NOT_ALLOWED`, `UNKNOWN_FIXTURE` | bad template / protected override / bad fixture |
+| 401 | `UNAUTHORIZED` | demo token on and `X-Demo-Token` missing or wrong |
 | 404 | `STRATEGY_NOT_FOUND`, `SIMULATION_NOT_FOUND`, `NOT_FOUND` | unknown id or route |
 | 409 | `STRATEGY_NOT_APPROVED` | start/scenarios on a DRAFT version |
 | 409 | `CLARIFICATION_REQUIRED` | approve a version that still has clarification questions |
@@ -79,7 +103,7 @@ All fields after `strategy_summary` are *additive*:
 | `generator` | `NICRRON` = proposal produced by Nicrron. `PRESET_FALLBACK` = built-in demo preset (no free text, or Nicrron failed). Never label a `PRESET_FALLBACK` result as AI-generated. |
 | `approvable` | `false` while `clarification_questions` is non-empty: disable Approve (the server returns 409 anyway). |
 | `nicrron.status` | `SUCCESS`, `FAILED`, `NOT_CONFIGURED` (no key on the server) or `NOT_REQUESTED` (no free text). |
-| `nicrron.error_code` / `error_message` | Show on failure. Codes: `NICRRON_NOT_CONFIGURED`, `NICRRON_AUTH_FAILED`, `NICRRON_RATE_LIMITED` (+ `retry_after` seconds), `NICRRON_TIMEOUT`, `NICRRON_CONNECTION_ERROR`, `NICRRON_MODEL_UNAVAILABLE`, `NICRRON_BAD_REQUEST`, `NICRRON_UPSTREAM_ERROR`, `NICRRON_HTTP_ERROR`, `NICRRON_INVALID_JSON`, `NICRRON_INVALID_OUTPUT`. |
+| `nicrron.error_code` / `error_message` | Show on failure. Codes: `NICRRON_NOT_CONFIGURED`, `NICRRON_AUTH_FAILED`, `NICRRON_RATE_LIMITED` (+ `retry_after` seconds), `NICRRON_TIMEOUT`, `NICRRON_CONNECTION_ERROR`, `NICRRON_MODEL_UNAVAILABLE`, `NICRRON_BAD_REQUEST`, `NICRRON_UPSTREAM_ERROR`, `NICRRON_HTTP_ERROR`, `NICRRON_INVALID_JSON`, `NICRRON_INVALID_OUTPUT`, `NICRRON_BUDGET_EXCEEDED` (demo spend cap, + `retry_after`), `NICRRON_BUSY` (another generation in flight). |
 | `interpreted_fields` | Dotted paths whose values came from the customer's text; all other values are demo defaults. Highlight these in the rule card. |
 | `unsupported_requirements` | Customer instructions StrategySpec v1 cannot express (e.g. trailing stop). Each one also appears as a clarification question. |
 | `warnings` | `Nicrron: ...` interpretation notes, `RISK_LOOSENED: ...` (a looser max-trades / loss-lock / contracts / cutoff than the customer-confirmed preset), feature notes. |
