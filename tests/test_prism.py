@@ -74,6 +74,15 @@ def test_prism_failure_never_blocks_drafting(client, nicrron, prism):
     assert state["prism_status"] == "LOCAL_ONLY"
 
 
+def test_non_object_trace_body_still_drafts(client, nicrron, prism):
+    nicrron.reply(GOOD)
+    prism.trace_body = []
+    body = _generate(client)
+    assert body["generator"] == "NICRRON" and body["approvable"] is True
+    assert body["prism"]["status"] == "SENT" and body["prism"]["trace_id"] is None
+    assert body["prism"]["context_span"] == "FAILED" and prism.span_calls == []
+
+
 def test_failed_model_call_is_traced_as_failure(client, nicrron, prism):
     nicrron.reply("this is not json")
     body = _generate(client)

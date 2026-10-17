@@ -3,7 +3,7 @@ import json
 
 import httpx
 
-from backend import nicrron_client
+from backend import kb_client, nicrron_client, prism_client
 
 from .conftest import FAKE_PRISM_KEY
 
@@ -78,6 +78,16 @@ def test_kb_unreachable_never_blocks_generation(client, nicrron, prism):
     body = _generate(client)
     assert body["generator"] == "NICRRON" and body["approvable"] is True
     assert body["knowledge_base"]["status"] == "FAILED"
+
+
+def test_kb_timeout_never_blocks_generation(client, nicrron, prism):
+    nicrron.reply(GOOD)
+    prism.kb_exc = lambda req: httpx.ReadTimeout("slow", request=req)
+    body = _generate(client)
+    assert body["generator"] == "NICRRON" and body["approvable"] is True
+    assert body["knowledge_base"]["status"] == "FAILED"
+    assert prism.kb_calls[0].extensions["timeout"]["read"] == kb_client.SEARCH_TIMEOUT_S
+    assert prism.calls[0].extensions["timeout"]["read"] == prism_client.TRACE_TIMEOUT_S
 
 
 def test_kb_no_match_is_still_a_traced_retrieval(client, nicrron, prism):

@@ -26,7 +26,7 @@ from .nicrron_client import _redact
 
 DEFAULT_HOST = "https://prism.blockconvey.com"
 AGENT_ID = "tradeagent-strategy-translator"
-TIMEOUT_S = 5.0
+TRACE_TIMEOUT_S = 3.0  # trace + span run after Nicrron in the request; PRISM must never noticeably slow drafting
 
 _transport: httpx.BaseTransport | None = None  # tests inject httpx.MockTransport here
 
@@ -49,7 +49,7 @@ def transport_kwargs() -> dict:
 
 
 def _client() -> httpx.Client:
-    return httpx.Client(timeout=TIMEOUT_S, **transport_kwargs())
+    return httpx.Client(timeout=TRACE_TIMEOUT_S, **transport_kwargs())
 
 
 def send_trace(*, session_id: str, model: str | None, input_messages: list[dict], output_message: str,
@@ -84,9 +84,11 @@ def send_trace(*, session_id: str, model: str | None, input_messages: list[dict]
         return {"status": "FAILED", "trace_id": None,
                 "error": f"PRISM returned HTTP {resp.status_code}: {_redact(resp.text, cfg['api_key'])[:300]}"}
     try:
-        trace_id = resp.json().get("id")
+        data = resp.json()
     except ValueError:
-        trace_id = None
+        data = None
+    # A 200 whose body is not a JSON object (e.g. ``[]``) still counts as sent, just without an id.
+    trace_id = data.get("id") if isinstance(data, dict) else None
     result = {"status": "SENT", "trace_id": trace_id, "error": None,
               "send_ms": int((time.monotonic() - started) * 1000)}
     if retrieval is not None:
