@@ -67,7 +67,7 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
         {lock && (
           <g>
             <rect x={x(minutes(lock.timestamp))} y={22} width={x(end) - x(minutes(lock.timestamp))} height={78} fill="var(--blocked-soft)" />
-            <text x={x(minutes(lock.timestamp)) + 6} y={36} fontSize="11" fontWeight="600" fill="var(--blocked)" fontFamily="var(--font-mono)">
+            <text x={x(minutes(lock.timestamp)) + 6} y={36} className="ta-svg-label" fill="var(--blocked)">
               ENTRIES LOCKED
             </text>
           </g>
@@ -101,7 +101,7 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
                 <g key={k} stroke="var(--blocked)" strokeWidth={2.5}>
                   <line x1={cx - 6} y1={axisY - 6} x2={cx + 6} y2={axisY + 6} />
                   <line x1={cx + 6} y1={axisY - 6} x2={cx - 6} y2={axisY + 6} />
-                  <text x={cx} y={axisY + 24} textAnchor="middle" fontSize="11" fontWeight="600" fill="var(--blocked)" stroke="none" fontFamily="var(--font-mono)">
+                  <text x={cx} y={axisY + 24} textAnchor="middle" className="ta-svg-label" fill="var(--blocked)" stroke="none">
                     BLOCKED
                   </text>
                 </g>
@@ -114,15 +114,15 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
         })}
         {hours.map((t, i) =>
           i % step === 0 && x(t) - x(SESSION_START) > 44 && x(end) - x(t) > 44 ? (
-            <text key={t} x={x(t)} y={H - 8} textAnchor="middle" fontSize="11" fill="var(--ink-muted)" fontFamily="var(--font-mono)">
+            <text key={t} x={x(t)} y={H - 8} textAnchor="middle" className="ta-svg-axis" fill="var(--ink-muted)">
               {`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`}
             </text>
           ) : null,
         )}
-        <text x={L} y={H - 8} fontSize="11" fill="var(--ink-muted)" fontFamily="var(--font-mono)">
+        <text x={L} y={H - 8} className="ta-svg-axis" fill="var(--ink-muted)">
           09:30
         </text>
-        <text x={W - R} y={H - 8} textAnchor="end" fontSize="11" fill="var(--ink-muted)" fontFamily="var(--font-mono)">
+        <text x={W - R} y={H - 8} textAnchor="end" className="ta-svg-axis" fill="var(--ink-muted)">
           {cutoff}
         </text>
       </svg>
