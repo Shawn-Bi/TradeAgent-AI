@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from . import audit, nicrron_client, prism_client
+from . import audit, kb_client, nicrron_client, prism_client
 from .errors import ApiError
 from .schemas import GenerateRequest, StrategySpec
 
@@ -265,14 +265,26 @@ class StrategyStore:
         generator = "PRESET_FALLBACK"
         meta = {"status": "NOT_REQUESTED", "model_requested": None, "model_used": None, "cached": False,
                 "latency_ms": None, "error_code": None, "error_message": None, "http_status": None,
-                "retry_after": None}
+                "retry_after": None, "prompt_version": None}
         text = req.free_text.strip()
         session_id = req.session_id or f"draft-{uuid.uuid4().hex[:12]}"
         trace_error = None
+        prompt_version = nicrron_client.prompt_version()
+        kb = {"status": "NOT_REQUESTED", "sources": [], "snippets": [], "error": None, "latency_ms": None}
+        kb_context = None
+        retrieval = None
+        if text and prompt_version != "v1":  # v1 is the original prompt, kept without retrieval as the baseline
+            kb_started = datetime.now(timezone.utc).isoformat()
+            kb = kb_client.search(text)  # never raises; a failed search only means no KB context
+            kb_context = kb_client.format_context(kb["snippets"]) or None
+            if kb["status"] in ("USED", "NO_MATCH"):
+                retrieval = {"query": text, "context": kb_context, "sources": kb["sources"], "started_at": kb_started,
+                             "ended_at": datetime.now(timezone.utc).isoformat(), "latency_ms": kb["latency_ms"]}
         if text:
             meta["model_requested"] = nicrron_client.config()["model"]
+            meta["prompt_version"] = prompt_version
             try:
-                ai = nicrron_client.translate(text, base)
+                ai = nicrron_client.translate(text, base, version=prompt_version, kb_context=kb_context)
             except nicrron_client.NicrronError as exc:
                 trace_error = exc
                 meta.update(status="NOT_CONFIGURED" if exc.code == "NICRRON_NOT_CONFIGURED" else "FAILED",
@@ -312,12 +324,13 @@ class StrategyStore:
             prism = prism_client.send_trace(
                 session_id=session_id,
                 model=meta["model_used"] or meta["model_requested"],
-                input_messages=nicrron_client.build_messages(text, base),
+                input_messages=nicrron_client.build_messages(text, base, version=prompt_version, kb_context=kb_context),
                 output_message=raw_content if raw_content is not None
                 else f"[NICRRON ERROR {trace_error.code}] {trace_error.message}",
                 latency_ms=meta["latency_ms"],
                 metadata={
-                    "app": "tradeagent-ai", "prompt_version": nicrron_client.PROMPT_VERSION,
+                    "app": "tradeagent-ai", "prompt_version": prompt_version,
+                    "kb_status": kb["status"], "kb_sources": kb["sources"],
                     "strategy_id": rec["spec"]["strategy_id"], "strategy_version": rec["spec"]["version"],
                     "generator": generator, "nicrron_status": meta["status"], "nicrron_error": meta["error_code"],
                     "cached": meta["cached"], "interpreted_fields": sorted(interpreted),
@@ -325,6 +338,7 @@ class StrategyStore:
                     "unsupported_requirements": len(unsupported),
                     "approvable": not rec["clarification_questions"],
                 },
+                retrieval=retrieval,
             )
             with self._lock:
                 stored = self._records[(rec["spec"]["strategy_id"], rec["spec"]["version"])]
@@ -336,10 +350,14 @@ class StrategyStore:
                      model_used=meta["model_used"], interpreted_fields=interpreted,
                      clarification_questions=len(rec["clarification_questions"]), free_text=text or None,
                      nicrron_raw_output=raw_content, prism_status=prism["status"], prism_trace_id=prism["trace_id"],
-                     prism_error=prism["error"], session_id=session_id)
+                     prism_error=prism["error"], session_id=session_id, prompt_version=prompt_version if text else None,
+                     kb_status=kb["status"], kb_sources=kb["sources"])
         return {**self._response(rec), "warnings": warnings, "nicrron": meta,
                 "interpreted_fields": sorted(interpreted), "unsupported_requirements": unsupported,
-                "prism": prism}
+                "prism": prism,
+                "knowledge_base": {"status": kb["status"], "sources_used": kb["sources"], "error": kb["error"],
+                                   "snippets": [{"source": s["source"], "score": s["score"], "excerpt": s["text"][:300]}
+                                                for s in kb["snippets"]]}}
 
     def _store(self, spec: dict, questions, warnings, generator) -> dict:
         sid = spec["strategy_id"]

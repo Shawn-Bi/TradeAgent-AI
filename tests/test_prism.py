@@ -33,7 +33,7 @@ def test_trace_sent_for_each_model_call(client, nicrron, prism):
     nicrron.reply(GOOD)
     body = _generate(client, session_id="conv-1")
     assert body["prism"] == {"status": "SENT", "trace_id": "trace-1", "error": None, "send_ms": body["prism"]["send_ms"],
-                             "session_id": "conv-1", "agent_id": prism_client.AGENT_ID}
+                             "session_id": "conv-1", "agent_id": prism_client.AGENT_ID, "context_span": "SENT"}
     req = prism.calls[0]
     assert req.url.path == "/api/traces" and req.headers["X-PRISMtrace-Key"] == FAKE_PRISM_KEY
     sent = prism.bodies()[0]
@@ -42,7 +42,7 @@ def test_trace_sent_for_each_model_call(client, nicrron, prism):
     assert sent["input_messages"][0]["role"] == "system"
     assert "Put my stop 6 ticks" in sent["input_messages"][-1]["content"]
     assert '"buffer_ticks": 6' in sent["output_message"]
-    assert sent["metadata"]["prompt_version"] == "v1"
+    assert sent["metadata"]["prompt_version"] == "v2"
     assert sent["metadata"]["interpreted_fields"] == ["stop.buffer_ticks"]
     assert sent["metadata"]["approvable"] is True
     assert FAKE_KEY not in str(sent)  # the Nicrron key never leaves the server

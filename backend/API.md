@@ -241,6 +241,29 @@ Tracing never blocks: a PRISM error is reported and the request still succeeds.
 - simulation state, *additive*: `prism_trace_id`, `prism_session_id`, `prism_scope: "STRATEGY_GENERATION"`. Engine
   decisions stay in the local audit; they are deterministic, not agent output.
 
+## Knowledge Base retrieval and prompt versions
+
+`PROMPT_VERSION` in `backend/.env` (or the environment) picks the translator prompt; it is re-read on every request.
+
+- `v2` (default): before the Nicrron call the backend runs `POST https://api.prism.blockconvey.com/api/knowledge-base/search`
+  with `{project_id, agent_id: "tradeagent-strategy-translator", query: <free_text>, limit: 3}`. The snippets go into the
+  system prompt as cited context (`[S1] source: NG_SIM_UNITS.md ...`), together with an explicit unit table and
+  "never invent a value; ask". The search is also attached to the PRISM trace as a `knowledge_base_search` span so
+  evaluators see it as `{context}` (`prism.context_span`: `SENT` / `FAILED`). The sources are `docs/kb/*.md`, uploaded
+  in PRISM and assigned to the agent.
+- `v1`: the original prompt, no retrieval. Kept as the baseline for the v1 vs v2 evaluation.
+
+A failed or empty search never blocks drafting: Nicrron is called without context.
+
+- `generate` response, *additive*: `nicrron.prompt_version` (`v1`/`v2`, `null` without free text) and
+  ```json
+  "knowledge_base": {"status": "USED", "sources_used": ["NG_SIM_UNITS.md", "STRATEGYSPEC_FIELD_GUIDE.md"], "error": null,
+                     "snippets": [{"source": "NG_SIM_UNITS.md", "score": 0.07, "excerpt": "# NG_SIM units: ticks, not points ..."}]}
+  ```
+  `status`: `USED`, `NO_MATCH`, `FAILED` (see `error`), `NOT_CONFIGURED` (no PRISM credentials) or `NOT_REQUESTED`
+  (no free text, or prompt `v1`). Show `sources_used` as "Sources used" on the Generate step.
+- trace metadata, *additive*: `kb_status`, `kb_sources`.
+
 ## Aliases
 `POST /api/strategy/generate` and `POST /api/strategy/approve` are aliases of the canonical routes
 (docs/FIRST_CUSTOMER_STRATEGY.md §F naming). Use the canonical `/api/strategies/...` routes in the frontend.
