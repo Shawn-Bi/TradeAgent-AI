@@ -1,6 +1,7 @@
-# TradeAgent AI backend API (v1.0.0) — integration guide for teammate A
+# TradeAgent AI backend API (v1.0.0)
 
-Base URL `http://localhost:8000` (`VITE_API_BASE_URL`). All JSON. Routes and field names are the frozen
+Base URL `http://localhost:8000` locally. The deployed app serves the API and the frontend on one origin, so the
+frontend calls relative `/api/...` paths (in development Vite proxies them to port 8000). All JSON. Routes and field names are the frozen
 ones from `docs/PRD.md` §8. Fields marked *additive* are extras the backend also returns; the frozen sample
 fields are always present, so a typed mock written from PRD §8 keeps working.
 
@@ -39,13 +40,10 @@ When B exposes the backend through a Cloudflare Quick Tunnel, the base URL is a 
   labeled fallback with `nicrron.error_code` `NICRRON_BUDGET_EXCEEDED` (with `retry_after` seconds) or
   `NICRRON_BUSY`; nothing else changes.
 
-Frontend setup (Vite), in A's local, git-ignored `.env.local`:
-```bash
-VITE_API_BASE_URL=https://<random>.trycloudflare.com
-VITE_DEMO_TOKEN=<token from B>
-```
-and in the single fetch helper: `headers: {"Content-Type": "application/json", "X-Demo-Token": import.meta.env.VITE_DEMO_TOKEN}`.
-With the token off (local development), the header is simply ignored.
+The tunnel is for API testing from another computer, for example with curl. The frontend does not
+send `X-Demo-Token`, and no token ever goes in a `VITE_` variable, because those end up in the public bundle; the
+deployed app runs on one origin with the token unset (see `docs/DEPLOY.md`). With the token off, the header is
+simply ignored.
 
 ## Errors (all routes)
 
