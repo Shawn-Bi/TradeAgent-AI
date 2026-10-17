@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
 import { api, ApiError } from '../api'
 import type {
   AuditEvent,
@@ -11,6 +12,9 @@ import type {
   SimulationState,
   StrategySpec,
 } from '../api'
+import { signedUsd } from '../lib/format'
+import { summarize } from '../lib/summary'
+import { fixtureLabel, FIXTURES } from '../screens/fixtures'
 import { deepMerge, formToOverrides, specToForm, type PresetForm } from './form'
 
 export const STEPS = ['Preset', 'Generate', 'Approve', 'Scenario', 'Simulate', 'Audit'] as const
@@ -146,6 +150,9 @@ export function useFlow() {
       setApproved({ spec: { ...strategy, approval_status: 'APPROVED' }, at: new Date() })
       setApproving({ status: 'idle' })
       setReached((r) => Math.max(r, 3))
+      toast.success(`Version ${strategy.version} approved and locked`, {
+        description: 'Only this exact version can run. Changing a value creates a new draft.',
+      })
     } catch (e) {
       setApproving({ status: 'error', error: errorText(e) })
     }
@@ -168,25 +175,51 @@ export function useFlow() {
     }
   }, [approved, go, scenarios.status])
 
-  const runSimulation = useCallback(async () => {
-    if (!approved) return
-    setRunning({ status: 'loading' })
-    try {
+  const runOne = useCallback(
+    async (id: FixtureId): Promise<RunResult> => {
+      if (!approved) throw new Error('Approve a version first.')
       const ref = { strategy_id: approved.spec.strategy_id, version: approved.spec.version }
-      const { simulation_id } = await api.startSimulation({ ...ref, seed: SEED, fixture })
+      const { simulation_id } = await api.startSimulation({ ...ref, seed: SEED, fixture: id })
       const [state, { events }, report] = await Promise.all([
         api.getSimulation(simulation_id),
         api.getSimulationEvents(simulation_id),
         api.getSimulationReport(simulation_id),
       ])
+      const run = { fixture: id, state, events, report }
       // Runs are kept per fixture, so switching sessions never throws away an earlier result.
-      setRuns((r) => ({ ...r, [fixture]: { fixture, state, events, report } }))
-      setRunning({ status: 'idle' })
-      setReached((r) => Math.max(r, 5))
-    } catch (e) {
-      setRunning({ status: 'error', error: errorText(e) })
-    }
-  }, [approved, fixture])
+      setRuns((r) => ({ ...r, [id]: run }))
+      return run
+    },
+    [approved],
+  )
+
+  const runSimulation = useCallback(
+    async (which: 'current' | 'all' = 'current') => {
+      setRunning({ status: 'loading' })
+      try {
+        const ids = which === 'all' ? FIXTURES.map((f) => f.id) : [fixture]
+        for (const id of ids) {
+          const s = summarize(await runOne(id))
+          toast(`${fixtureLabel(id)} finished`, {
+            description: `${signedUsd(s.pnl)} · ${s.trades} trades · ${s.blocked} entries blocked`,
+          })
+        }
+        setRunning({ status: 'idle' })
+        setReached((r) => Math.max(r, 5))
+      } catch (e) {
+        setRunning({ status: 'error', error: errorText(e) })
+      }
+    },
+    [fixture, runOne],
+  )
+
+  /** Back to the demo defaults, as if starting fresh. */
+  const startOver = useCallback(() => {
+    setForm(DEFAULT_FORM)
+    setSubmitted(DEFAULT_FORM)
+    invalidate()
+    go(0)
+  }, [go, invalidate])
 
   return {
     step,
@@ -209,6 +242,7 @@ export function useFlow() {
     runs,
     running,
     runSimulation,
+    startOver,
   }
 }
 

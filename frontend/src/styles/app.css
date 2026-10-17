@@ -1,5 +1,5 @@
 /* App layout classes, from the clickable prototype. Every value comes from tokens.css.
-   Component classes (ta-btn, ta-pill, ta-card, ta-table…) live in components.css. */
+   Interactive components (buttons, pills, cards, tables, selects, dialogs) are shadcn/ui in src/components/ui. */
 
 .ta-wrap { max-width: 1120px; margin: 0 auto; padding-inline: var(--space-4); }
 .ta-small { font-size: var(--type-code-size); line-height: var(--type-code-line); }
@@ -31,13 +31,12 @@
 /* Form */
 .ta-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--space-4) var(--space-6); }
 .ta-field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
-.ta-field input, .ta-field select, .ta-field textarea, .ta-input { font: 400 var(--type-control-size)/var(--type-control-line) var(--font-mono); padding: var(--space-2) var(--space-3); border: 1px solid var(--control-border); border-radius: var(--radius-md); background: var(--panel); color: var(--ink); width: 100%; min-width: 0; }
+.ta-field input, .ta-field select, .ta-field textarea { font: 400 var(--type-control-size)/var(--type-control-line) var(--font-mono); padding: var(--space-2) var(--space-3); border: 1px solid var(--control-border); border-radius: var(--radius-md); background: var(--panel); color: var(--ink); width: 100%; min-width: 0; }
 .ta-field textarea { font-family: var(--font-sans); resize: vertical; min-height: 80px; }
-.ta-field input:focus-visible, .ta-field select:focus-visible, .ta-field textarea:focus-visible, .ta-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ta-field input:focus-visible, .ta-field select:focus-visible, .ta-field textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .ta-field input[aria-invalid="true"] { border-color: var(--blocked); }
 /* Hints reserve two lines so a changing hint never shifts the Generate button. */
 .ta-hint { font-size: var(--type-meta-size); line-height: var(--type-meta-line); color: var(--ink-muted); min-height: 32px; }
-.ta-hint--assume { color: var(--marker-ink); }
 .ta-hint--err { color: var(--blocked); font-weight: 500; }
 .ta-input-unit { display: flex; align-items: center; gap: var(--space-2); }
 .ta-input-unit span { font: 400 var(--type-code-size)/var(--type-code-line) var(--font-mono); color: var(--ink-muted); white-space: nowrap; }
@@ -67,10 +66,6 @@
 .ta-neg { color: var(--blocked); }
 
 /* Tables: scroll inside their card; on phones the card list replaces them */
-.ta-table-wrap { overflow-x: auto; }
-.ta-table td.num, .ta-table th.num { text-align: right; }
-.ta-table td { white-space: nowrap; }
-.ta-table td.reason { white-space: normal; min-width: 220px; }
 .ta-rowcards { list-style: none; margin: 0; padding: 0; }
 .ta-rowcards li { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--grid); display: flex; flex-direction: column; gap: var(--space-1); }
 .ta-rowcards li:last-child { border-bottom: 0; }
@@ -80,10 +75,6 @@
 @media (max-width: 640px) { .ta-only-wide { display: none; } .ta-only-narrow { display: block; } }
 
 /* Details / JSON */
-.ta-more { border-top: 1px solid var(--line); }
-.ta-more summary { cursor: pointer; padding: var(--space-3) var(--space-4); font-size: var(--type-code-size); color: var(--ink-muted); }
-.ta-more summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-.ta-more > div { padding: 0 var(--space-4) var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .ta-json { margin: 0; padding: var(--space-3); background: var(--ground); border: 1px solid var(--line); border-radius: var(--radius-md); font: 400 var(--type-meta-size)/var(--type-meta-line) var(--font-mono); overflow: auto; max-height: 320px; }
 
 /* Scenario cards */
@@ -100,11 +91,6 @@
 .ta-glossary dt { font-family: var(--font-mono); font-weight: 500; }
 .ta-glossary dd { margin: 0; color: var(--ink-muted); }
 @media (max-width: 520px) { .ta-glossary dl { grid-template-columns: 1fr; } .ta-glossary dd { margin-bottom: var(--space-2); } }
-
-.ta-working { display: flex; gap: var(--space-2); align-items: center; padding: var(--space-4); color: var(--ink-muted); }
-.ta-working i { width: 8px; height: 8px; border-radius: 50%; background: var(--ledger); }
-@media (prefers-reduced-motion: no-preference) { .ta-working i { animation: ta-blink 1s ease-in-out infinite; } }
-@keyframes ta-blink { 50% { opacity: .2; } }
 
 .ta-footer { padding-block: var(--space-6) var(--space-8); font-size: var(--type-meta-size); line-height: var(--type-meta-line); color: var(--ink-muted); }
 

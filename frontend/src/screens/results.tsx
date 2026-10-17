@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AuditEvent } from '../api'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusPill } from '../components/StatusPill'
+import { Term } from '../components/Term'
 import type { RunResult } from '../flow/useFlow'
 import { hhmm } from '../lib/format'
 
@@ -149,35 +151,39 @@ export function DecisionLog({ events }: { events: AuditEvent[] }) {
     return <div className="ta-card__body ta-small ta-muted">No decisions were logged in this session.</div>
   return (
     <>
-      <div className="ta-only-wide ta-table-wrap">
-        <table className="ta-table">
-          <thead>
-            <tr>
-              <th>Seq</th>
-              <th>Time</th>
-              <th>Rule</th>
-              <th>Expected</th>
-              <th>Actual</th>
-              <th>Result</th>
-              <th>Reason</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="ta-only-wide">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Seq</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Rule</TableHead>
+              <TableHead>Expected</TableHead>
+              <TableHead>Actual</TableHead>
+              <TableHead>Result</TableHead>
+              <TableHead>Reason</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {events.map((e) => (
-              <tr key={e.event_id} className={e.actual_action === 'BLOCK_ENTRY' ? 'is-blocked' : undefined}>
-                <td>{e.seq}</td>
-                <td>{hhmm(e.timestamp)}</td>
-                <td>{e.rule_id}</td>
-                <td>{e.expected_action}</td>
-                <td>{e.actual_action}</td>
-                <td>
+              <TableRow key={e.event_id} className={e.actual_action === 'BLOCK_ENTRY' ? 'bg-blocked-soft hover:bg-blocked-soft' : undefined}>
+                <TableCell className="font-mono">{e.seq}</TableCell>
+                <TableCell className="font-mono">{hhmm(e.timestamp)}</TableCell>
+                <TableCell className="font-mono">{e.rule_id}</TableCell>
+                <TableCell className="font-mono">
+                  <Term term={e.expected_action} />
+                </TableCell>
+                <TableCell className="font-mono">
+                  <Term term={e.actual_action} />
+                </TableCell>
+                <TableCell>
                   <Result e={e} />
-                </td>
-                <td className="reason">{e.reason}</td>
-              </tr>
+                </TableCell>
+                <TableCell className="min-w-56 whitespace-normal">{e.reason}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       <ul className="ta-only-narrow ta-rowcards">
         {events.map((e) => (
@@ -190,7 +196,7 @@ export function DecisionLog({ events }: { events: AuditEvent[] }) {
             </div>
             <span>{e.reason}</span>
             <span className="ta-mono text-meta ta-muted">
-              expected {e.expected_action} · actual {e.actual_action}
+              expected <Term term={e.expected_action} /> · actual <Term term={e.actual_action} />
             </span>
           </li>
         ))}

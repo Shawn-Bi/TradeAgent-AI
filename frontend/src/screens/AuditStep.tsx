@@ -1,4 +1,10 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Disclosure } from '../components/Disclosure'
+import { Term } from '../components/Term'
 import { Card, Nav, StepHead } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
@@ -37,24 +43,19 @@ export function AuditStep({ flow }: { flow: Flow }) {
       <StepHead
         title="Audit report"
         sub="What happened to the mock account, and whether the engine followed your approved rules at every decision."
-        right={<StatusPill value="SIMULATION ONLY" tone="synthetic" />}
+        right={<StatusPill value="SYNTHETIC" />}
       />
 
       {ranIds.length > 1 && (
-        <div className="ta-row" role="tablist" aria-label="Simulated sessions">
-          {ranIds.map((rid) => (
-            <button
-              key={rid}
-              type="button"
-              role="tab"
-              aria-selected={rid === id}
-              className={`ta-btn ${rid === id ? 'ta-btn--primary' : ''}`}
-              onClick={() => setPicked(rid)}
-            >
-              {fixtureLabel(rid)}
-            </button>
-          ))}
-        </div>
+        <Tabs value={id} onValueChange={setPicked}>
+          <TabsList aria-label="Simulated sessions" className="h-auto flex-wrap border border-line bg-card p-1">
+            {ranIds.map((rid) => (
+              <TabsTrigger key={rid} value={rid} className="px-3 py-1.5 text-control">
+                {fixtureLabel(rid)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       )}
 
       <Card title={`Results · ${fixtureLabel(run.fixture)}`} right={<span className="ta-mono text-meta ta-muted">{run.state.simulation_id}</span>}>
@@ -90,21 +91,20 @@ export function AuditStep({ flow }: { flow: Flow }) {
             </Card>
           )}
 
-          <Card title="Rule-following" right={<StatusPill value="SYNTHETIC" />}>
+          <Card title="Rule-following">
             <div className="ta-card__body ta-meter">
               <span className="ta-meter__fig">
                 {r.execution_conformance === null ? 'N/A' : `${r.compliant_decisions} / ${r.eligible_decisions}`}
               </span>
-              <div className="ta-meter__bar">
-                <span style={{ width: `${pct}%` }} />
-              </div>
+              <Progress value={pct} indicatorClassName="bg-compliant" aria-label="Decisions that followed the rules" />
               <span className="ta-small ta-muted">
                 {r.execution_conformance === null
                   ? 'N/A · no decisions to check in this session.'
                   : `decisions where the engine did exactly what your rules required, including trades it correctly refused · ${r.violations} violation${r.violations === 1 ? '' : 's'}. This is not a win rate.`}
               </span>
               <span className="ta-small ta-muted">
-                A violation would appear in orange as <code>VIOLATION</code>, for example the engine opening a trade while entries were locked.
+                A <Term term="VIOLATION">violation</Term> would appear in orange, for example the engine opening a trade
+                while entries were locked.
               </span>
             </div>
           </Card>
@@ -124,12 +124,9 @@ export function AuditStep({ flow }: { flow: Flow }) {
                 ? 'Every decision is also traced to PRISM.'
                 : 'Kept in this session only. External tracing (PRISM) is not connected for this run.'}
             </div>
-            <details className="ta-more">
-              <summary>Technical details: report JSON</summary>
-              <div>
-                <pre className="ta-json">{JSON.stringify(r, null, 2)}</pre>
-              </div>
-            </details>
+            <Disclosure label="Technical details: report JSON">
+              <pre className="ta-json">{JSON.stringify(r, null, 2)}</pre>
+            </Disclosure>
           </Card>
         </div>
       </div>
@@ -151,41 +148,45 @@ export function AuditStep({ flow }: { flow: Flow }) {
           ))}
           {s.blocked > 0 && <li className="is-blocked">Valid signal blocked by the loss lock. Never opened.</li>}
         </ul>
-        <div className="ta-only-wide ta-table-wrap">
-          <table className="ta-table">
-            <thead>
-              <tr>
-                <th>Trade</th>
-                <th className="num">Entry</th>
-                <th className="num">Avg exit</th>
-                <th className="num">Contracts</th>
-                <th>Outcome</th>
-                <th className="num">P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="ta-only-wide">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Trade</TableHead>
+                <TableHead className="text-right">Entry</TableHead>
+                <TableHead className="text-right">Avg exit</TableHead>
+                <TableHead className="text-right">Contracts</TableHead>
+                <TableHead>Outcome</TableHead>
+                <TableHead className="text-right">P&amp;L</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {run.state.completed_trades.map((t) => (
-                <tr key={t.position_id}>
-                  <td>{t.position_id}</td>
-                  <td className="num">{price(t.entry_price)}</td>
-                  <td className="num">{price(t.exit_price)}</td>
-                  <td className="num">{t.contracts}</td>
-                  <td className="reason">{OUTCOME[t.exit_reason] ?? t.exit_reason}</td>
-                  <td className={`num ${t.realized_pnl_usd < 0 ? 'ta-neg' : ''}`}>{signedUsd(t.realized_pnl_usd)}</td>
-                </tr>
+                <TableRow key={t.position_id}>
+                  <TableCell className="font-mono">{t.position_id}</TableCell>
+                  <TableCell className="text-right font-mono">{price(t.entry_price)}</TableCell>
+                  <TableCell className="text-right font-mono">{price(t.exit_price)}</TableCell>
+                  <TableCell className="text-right font-mono">{t.contracts}</TableCell>
+                  <TableCell>{OUTCOME[t.exit_reason] ?? t.exit_reason}</TableCell>
+                  <TableCell className={`text-right font-mono ${t.realized_pnl_usd < 0 ? 'text-blocked' : ''}`}>
+                    {signedUsd(t.realized_pnl_usd)}
+                  </TableCell>
+                </TableRow>
               ))}
               {s.blocked > 0 && (
-                <tr className="is-blocked">
-                  <td>—</td>
-                  <td className="num">—</td>
-                  <td className="num">—</td>
-                  <td className="num">0</td>
-                  <td className="reason">Valid signal blocked by the loss lock. Never opened.</td>
-                  <td className="num">—</td>
-                </tr>
+                <TableRow className="bg-blocked-soft hover:bg-blocked-soft">
+                  <TableCell className="font-mono">—</TableCell>
+                  <TableCell className="text-right font-mono">—</TableCell>
+                  <TableCell className="text-right font-mono">—</TableCell>
+                  <TableCell className="text-right font-mono">0</TableCell>
+                  <TableCell className="whitespace-normal">
+                    Valid signal blocked by the loss lock (<Term term="BLOCK_ENTRY" />). Never opened.
+                  </TableCell>
+                  <TableCell className="text-right font-mono">—</TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </Card>
 
@@ -194,9 +195,9 @@ export function AuditStep({ flow }: { flow: Flow }) {
       </Card>
 
       <Nav back={() => flow.go(4)}>
-        <button type="button" className="ta-btn" onClick={() => flow.go(0)}>
-          Change rules
-        </button>
+        <Button variant="outline" onClick={() => flow.go(0)}>
+          Change values
+        </Button>
       </Nav>
     </div>
   )

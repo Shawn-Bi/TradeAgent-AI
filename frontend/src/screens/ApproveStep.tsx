@@ -1,7 +1,9 @@
+import { Button } from '@/components/ui/button'
 import type { ReactNode } from 'react'
 import type { StrategySpec } from '../api'
 import { Card, ErrorNote, Nav, StepHead } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
+import { Term } from '../components/Term'
 import type { Flow } from '../flow/useFlow'
 import { price, usd } from '../lib/format'
 
@@ -34,13 +36,21 @@ function rules(s: StrategySpec, draft: boolean): [string, ReactNode][] {
       'STOP',
       <>
         Lowest low of the last {s.stop.lookback_5m_bars} completed 5m bars minus{' '}
-        <A on={draft}>{s.stop.buffer_ticks} ticks</A>. Skip the trade if entry minus stop is zero or less.
+        <A on={draft}>
+          {s.stop.buffer_ticks} <Term term="Tick">ticks</Term>
+        </A>
+        . Skip the trade if entry minus stop is zero or less.
       </>,
     ],
     [
       'TARGET',
       <>
-        Sell {s.exit.first_target_close_contracts} contract at entry + <A on={draft}>{s.exit.target_r}R</A>. The
+        Sell {s.exit.first_target_close_contracts} contract at entry +{' '}
+        <A on={draft}>
+          {s.exit.target_r}
+          <Term term="R">R</Term>
+        </A>
+        . The
         other contract keeps the original stop and exits at that stop or at {s.session.cutoff_local} ET.
       </>,
     ],
@@ -109,17 +119,12 @@ export function ApproveStep({ flow }: { flow: Flow }) {
               </span>
             ) : (
               <>
-                <button
-                  type="button"
-                  className="ta-btn ta-btn--primary"
-                  disabled={flow.approving.status === 'loading'}
-                  onClick={flow.approve}
-                >
+                <Button disabled={flow.approving.status === 'loading'} onClick={flow.approve}>
                   {flow.approving.status === 'loading' ? 'Approving… Working…' : `Approve version ${spec.version}`}
-                </button>
-                <button type="button" className="ta-btn" onClick={() => flow.go(0)}>
+                </Button>
+                <Button variant="outline" onClick={() => flow.go(0)}>
                   Change values
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -127,9 +132,9 @@ export function ApproveStep({ flow }: { flow: Flow }) {
       </Card>
       <Nav back={() => flow.go(1)}>
         {!isApproved && <span className="ta-small ta-muted">Approve to continue.</span>}
-        <button type="button" className="ta-btn ta-btn--primary" disabled={!isApproved} onClick={flow.loadScenarios}>
+        <Button disabled={!isApproved} onClick={flow.loadScenarios}>
           See hypothetical scenarios
-        </button>
+        </Button>
       </Nav>
     </div>
   )

@@ -1,4 +1,9 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Disclosure } from '../components/Disclosure'
 import type { ClarificationChoice, ClarificationQuestion } from '../api'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
@@ -48,26 +53,28 @@ function ClarificationPrompt({
       <div>
         You wrote <q>{q.source_text.replace(/[.!?]+$/, '')}</q>. {q.question}
       </div>
-      <fieldset className="ta-stack m-0 border-0 p-0" style={{ gap: 'var(--space-2)' }}>
-        <legend className="sr-only">{q.question}</legend>
+      <RadioGroup
+        value={picked ?? ''}
+        onValueChange={setPicked}
+        aria-label={q.question}
+        className="gap-2"
+      >
         {q.choices.map((c, i) => (
-          <label key={c.label} className="ta-choice">
-            <input
-              type="radio"
-              name={`q-${q.id}`}
-              value={String(i)}
-              checked={picked === String(i)}
-              onChange={() => setPicked(String(i))}
-            />
-            {c.label}
-          </label>
+          <div key={c.label} className="ta-choice">
+            <RadioGroupItem value={String(i)} id={`q-${q.id}-${i}`} />
+            <Label htmlFor={`q-${q.id}-${i}`} className="cursor-pointer text-control font-normal text-ink normal-case">
+              {c.label}
+            </Label>
+          </div>
         ))}
         {q.custom && (
-          <label className="ta-choice flex-wrap">
-            <input type="radio" name={`q-${q.id}`} value={CUSTOM} checked={picked === CUSTOM} onChange={() => setPicked(CUSTOM)} />
-            Something else:
-            <input
-              className="ta-input w-24"
+          <div className="ta-choice flex-wrap">
+            <RadioGroupItem value={CUSTOM} id={`q-${q.id}-custom`} />
+            <Label htmlFor={`q-${q.id}-custom`} className="cursor-pointer text-control font-normal text-ink normal-case">
+              Something else:
+            </Label>
+            <Input
+              className="w-24 font-mono"
               type="number"
               inputMode="numeric"
               min={q.custom.min}
@@ -77,22 +84,17 @@ function ClarificationPrompt({
               onFocus={() => setPicked(CUSTOM)}
               onChange={(e) => setCustom(e.target.value)}
             />
-            {q.custom.unit}
-          </label>
+            <span className="text-control">{q.custom.unit}</span>
+          </div>
         )}
-      </fieldset>
+      </RadioGroup>
       <div className="ta-row">
-        <button
-          type="button"
-          className="ta-btn ta-btn--primary"
-          disabled={choice === null}
-          onClick={() => choice && onAnswer(choice)}
-        >
+        <Button disabled={choice === null} onClick={() => choice && onAnswer(choice)}>
           Use this answer
-        </button>
-        <button type="button" className="ta-btn ta-btn--quiet" onClick={onEditText}>
+        </Button>
+        <Button variant="link" onClick={onEditText}>
           Edit my text instead
-        </button>
+        </Button>
         {picked === CUSTOM && !customOk && q.custom && (
           <span className="ta-small text-blocked">
             Enter a whole number of {q.custom.unit} from {q.custom.min} to {q.custom.max}.
@@ -154,12 +156,9 @@ export function GenerateStep({ flow }: { flow: Flow }) {
               : 'Written by: AI model, then checked against the StrategySpec schema.'}
           </span>
         </div>
-        <details className="ta-more">
-          <summary>Technical details: the StrategySpec JSON that will run</summary>
-          <div>
-            <pre className="ta-json">{JSON.stringify(strategy, null, 2)}</pre>
-          </div>
-        </details>
+        <Disclosure label="Technical details: the StrategySpec JSON that will run">
+          <pre className="ta-json">{JSON.stringify(strategy, null, 2)}</pre>
+        </Disclosure>
       </Card>
 
       {interpretation.length > 0 && (
@@ -200,9 +199,9 @@ export function GenerateStep({ flow }: { flow: Flow }) {
               </div>
             ))}
             <div>
-              <button type="button" className="ta-btn" onClick={flow.changeAnswers}>
+              <Button variant="outline" onClick={flow.changeAnswers}>
                 Change answers
-              </button>
+              </Button>
             </div>
           </div>
         </Card>
@@ -222,9 +221,9 @@ export function GenerateStep({ flow }: { flow: Flow }) {
             Answer {open === 1 ? 'the question' : `all ${open} questions`} to continue.
           </span>
         )}
-        <button type="button" className="ta-btn ta-btn--primary" disabled={open > 0} onClick={() => flow.go(2)}>
+        <Button disabled={open > 0} onClick={() => flow.go(2)}>
           Review exact rules
-        </button>
+        </Button>
       </Nav>
     </div>
   )

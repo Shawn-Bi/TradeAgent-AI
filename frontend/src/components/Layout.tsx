@@ -1,4 +1,10 @@
 import type { ReactNode } from 'react'
+import { CircleAlert } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card as UiCard } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export function StepHead({ title, sub, right }: { title: string; sub: ReactNode; right?: ReactNode }) {
   return (
@@ -12,12 +18,19 @@ export function StepHead({ title, sub, right }: { title: string; sub: ReactNode;
   )
 }
 
+const headTone = {
+  draft: 'bg-marker-soft',
+  approved: 'bg-ledger-soft',
+  locked: 'bg-blocked-soft text-blocked',
+}
+
+/** A design-system panel on the shadcn Card: hairline border, tinted header by state. */
 export function Card({
   title,
   right,
   tone,
   children,
-  className = '',
+  className,
 }: {
   title?: ReactNode
   right?: ReactNode
@@ -26,15 +39,15 @@ export function Card({
   className?: string
 }) {
   return (
-    <section className={`ta-card ${tone ? `ta-card--${tone}` : ''} ${className}`}>
+    <UiCard className={cn('gap-0 py-0', tone === 'locked' && 'border-blocked', className)}>
       {title !== undefined && (
-        <div className="ta-card__head">
-          <h3>{title}</h3>
+        <div className={cn('flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3', tone && headTone[tone])}>
+          <h3 className="m-0 text-heading">{title}</h3>
           {right}
         </div>
       )}
       {children}
-    </section>
+    </UiCard>
   )
 }
 
@@ -42,9 +55,9 @@ export function Nav({ back, children }: { back?: () => void; children?: ReactNod
   return (
     <div className="ta-nav">
       {back ? (
-        <button type="button" className="ta-btn" onClick={back}>
+        <Button variant="outline" onClick={back}>
           Back
-        </button>
+        </Button>
       ) : (
         <span />
       )}
@@ -53,29 +66,40 @@ export function Nav({ back, children }: { back?: () => void; children?: ReactNod
   )
 }
 
+/** Loading: the step name and a static "Working…" label over skeleton lines, never a spinner alone. */
 export function Working({ label }: { label: string }) {
   return (
-    <div className="ta-working" role="status">
-      <i aria-hidden="true" />
-      {label} · Working…
+    <div className="flex flex-col gap-3 p-4" role="status">
+      <span className="text-code text-ink-muted">{label} · Working…</span>
+      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+      <Skeleton className="h-4 w-2/3" />
     </div>
   )
 }
 
+/** Errors say what happened and what to do next. */
 export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const offline = message.includes('NETWORK_ERROR')
   return (
-    <div className="ta-card ta-card--locked" role="alert">
-      <div className="ta-card__head">
-        <h3>Something went wrong</h3>
-      </div>
-      <div className="ta-card__body ta-row">
+    <Alert variant="destructive" className="border-blocked bg-blocked-soft">
+      <CircleAlert />
+      <AlertTitle>{offline ? 'Can’t reach the backend' : 'That didn’t work'}</AlertTitle>
+      <AlertDescription className="flex flex-col gap-3">
         <span>{message}</span>
+        <span>
+          {offline
+            ? 'Start the backend on port 8000, or set VITE_API_MODE=mock to use the built-in demo data. Nothing was changed.'
+            : 'Nothing was changed. Try again, or go back and adjust your rules.'}
+        </span>
         {onRetry && (
-          <button type="button" className="ta-btn" onClick={onRetry}>
-            Try again
-          </button>
+          <span>
+            <Button variant="outline" onClick={onRetry}>
+              Try again
+            </Button>
+          </span>
         )}
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   )
 }

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
@@ -75,16 +76,16 @@ export function ScenarioStep({ flow }: { flow: Flow }) {
                     ? `Engine replay result: ${signedUsd(s.computed_pnl_usd)}`
                     : 'Narrative only. No dollar result.'}{' '}
                   {replay ? (
-                    <button
-                      type="button"
-                      className="ta-btn ta-btn--quiet px-0"
+                    <Button
+                      variant="link"
+                      className="h-auto px-0 text-left whitespace-normal"
                       onClick={() => {
                         flow.setFixture(replay.id)
                         flow.go(4)
                       }}
                     >
                       Replay this as “{replay.label}” →
-                    </button>
+                    </Button>
                   ) : (
                     'No replay for this shape yet.'
                   )}
@@ -95,9 +96,7 @@ export function ScenarioStep({ flow }: { flow: Flow }) {
         })}
       </div>
       <Nav back={() => flow.go(2)}>
-        <button type="button" className="ta-btn ta-btn--primary" onClick={() => flow.go(4)}>
-          Set up the simulation
-        </button>
+        <Button onClick={() => flow.go(4)}>Set up the simulation</Button>
       </Nav>
     </div>
   )
