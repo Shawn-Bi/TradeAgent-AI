@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DecisionFunnel } from '../components/DecisionFunnel'
 import { Disclosure } from '../components/Disclosure'
 import { Term } from '../components/Term'
 import { Card, Nav, StepHead } from '../components/Layout'
@@ -64,6 +65,8 @@ export function AuditStep({ flow }: { flow: Flow }) {
           One synthetic session. This shows how your rules behaved, not whether they will make money. {r.disclaimer}.
         </div>
       </Card>
+
+      <DecisionFunnel events={run.events} />
 
       <div className="ta-cols">
         <div className="ta-section">
