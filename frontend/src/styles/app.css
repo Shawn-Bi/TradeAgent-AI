@@ -57,10 +57,10 @@
 @media (max-width: 520px) { .ta-interp li { grid-template-columns: 1fr; gap: var(--space-1); } }
 
 /* KPI strip */
-.ta-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.ta-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); }
 .ta-kpi { padding: var(--space-3) var(--space-4); border-right: 1px solid var(--grid); border-bottom: 1px solid var(--grid); display: flex; flex-direction: column; gap: var(--space-1); }
 .ta-kpi:last-child { border-right: 0; }
-.ta-kpi .v { font: 500 var(--type-title-size)/var(--type-title-line) var(--font-mono); font-variant-numeric: tabular-nums; }
+.ta-kpi .v { font: 500 var(--type-title-size)/var(--type-title-line) var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .ta-kpi--alert { background: var(--blocked-soft); }
 .ta-kpi--alert .ta-label { color: var(--blocked); }
 .ta-neg { color: var(--blocked); }
@@ -79,7 +79,6 @@
 
 /* Scenario cards */
 .ta-scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
-.ta-spark { width: 100%; height: 56px; display: block; }
 
 /* Session timeline */
 .ta-timeline { display: block; width: 100%; height: auto; }

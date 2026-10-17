@@ -17,7 +17,7 @@ export const GLOSSARY: Record<string, string> = {
   CLOSE_SESSION: 'The session ended. The account is flat and no new entries are allowed.',
   MAX_TRADES: 'The session reached its maximum number of completed trades, which locks new entries.',
   LOCK_ENTRIES: 'The loss limit was reached. New entries are locked for the rest of the session.',
-  BLOCK_ENTRY: 'A valid signal arrived while locked, and the engine refused it. No order was opened.',
+  BLOCK_ENTRY: 'A signal passed the entry rules, but a risk rule refused it (loss lock, trade limit, already in a trade or the cutoff). No order was opened.',
   TWO_CONSECUTIVE_LOSSES: 'Two completed trades in a row lost money, which triggers the entry lock.',
   COMPLIANT: 'The engine did exactly what your rules said it should. This measures rule-following, not profit.',
   VIOLATION: 'The engine did something your rules did not allow. This would be a bug in the engine.',

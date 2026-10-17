@@ -3,21 +3,19 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { GenerateStrategyResponse } from '../api'
+import { AgentTrace } from '../components/AgentTrace'
 import { Disclosure } from '../components/Disclosure'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
 
-/** Who wrote this draft, in plain words. Never call a preset result AI-generated. */
-function authorship(d: GenerateStrategyResponse): string {
+/** Who wrote this draft, in plain words, when no AI call was made. Never call a preset result AI-generated.
+ *  When Nicrron was called, the AgentTrace card says who wrote it instead. */
+function presetNote(d: GenerateStrategyResponse): string {
   const n = d.nicrron
-  if (d.generator === 'NICRRON' && n) {
-    const secs = n.latency_ms !== null ? ` · ${(n.latency_ms / 1000).toFixed(1)}s` : ''
-    return `Written by Nicrron (${n.model_used ?? n.model_requested ?? 'model'})${secs}${n.cached ? ' · cached' : ''}, then checked against the StrategySpec schema.`
-  }
   if (n && (n.status === 'FAILED' || n.status === 'NOT_CONFIGURED'))
     return `Built-in demo preset. Nicrron did not read your text: ${n.error_message ?? n.error_code}.`
-  return 'Built-in demo preset: no free text was given, so no AI model was called.'
+  return 'No AI call: the built-in preset wrote this, so nothing was traced.'
 }
 
 function PrismPill({ d }: { d: GenerateStrategyResponse }) {
@@ -101,6 +99,8 @@ export function GenerateStep({ flow }: { flow: Flow }) {
   const other = warnings.filter((w) => !w.startsWith('Nicrron: ') && !w.startsWith('RISK_LOOSENED'))
   const interpreted = d.interpreted_fields ?? []
   const unsupported = d.unsupported_requirements ?? []
+  // The trader's text went to Nicrron (successfully or not), so there is a call to show and trace.
+  const traced = !!d.nicrron && d.nicrron.status !== 'NOT_REQUESTED'
 
   return (
     <div className="ta-section ta-narrow">
@@ -120,12 +120,18 @@ export function GenerateStep({ flow }: { flow: Flow }) {
           {!approvable && (
             <span className="ta-small text-marker-ink">Not final: answer the questions below and generate again.</span>
           )}
-          <span className="ta-small ta-muted">{authorship(d)}</span>
+          {d.generator === 'NICRRON' ? (
+            <span className="ta-small ta-muted">Drafted by Nicrron. How, step by step, is shown below.</span>
+          ) : (
+            <span className="ta-small ta-muted">{presetNote(d)}</span>
+          )}
         </div>
         <Disclosure label="Technical details: the StrategySpec JSON that will run">
           <pre className="ta-json">{JSON.stringify(strategy, null, 2)}</pre>
         </Disclosure>
       </Card>
+
+      {traced && <AgentTrace d={d} />}
 
       {(interpreted.length > 0 || notes.length > 0 || unsupported.length > 0) && (
         <Card title="What your text became">
