@@ -9,9 +9,9 @@
   "preconditions": {"approval_status": "APPROVED", "position_open": false, "consecutive_loss_lock": 2},
   "steps": [
     {"step": 1, "event": "ENTRY_ELIGIBLE", "position_id": "P1", "expected": "OPEN_LONG"},
-    {"step": 2, "event": "POSITION_CLOSED", "position_id": "P1", "realized_pnl_usd": -40, "expected_consecutive_losses": 1},
+    {"step": 2, "event": "POSITION_CLOSED", "position_id": "P1", "realized_pnl_usd": -80, "expected_consecutive_losses": 1},
     {"step": 3, "event": "ENTRY_ELIGIBLE", "position_id": "P2", "expected": "OPEN_LONG"},
-    {"step": 4, "event": "POSITION_CLOSED", "position_id": "P2", "realized_pnl_usd": -30, "expected_consecutive_losses": 2},
+    {"step": 4, "event": "POSITION_CLOSED", "position_id": "P2", "realized_pnl_usd": -100, "expected_consecutive_losses": 2},
     {"step": 5, "event": "ENTRY_ELIGIBLE", "position_id": "P3", "expected": "BLOCK_ENTRY", "reason": "TWO_CONSECUTIVE_LOSSES"}
   ],
   "assertions": {"new_position_after_step_5": false, "session_locked": true, "blocked_entry_logged": true, "risk_violations": 0}

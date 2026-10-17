@@ -61,13 +61,13 @@ Every evaluation logs: `timestamp`, `strategy_id`, `signal_bar_id`, `trend_ok`, 
 | T11 | Stop and target within same 1m bar | Stop first; ambiguity logged |
 | T12 | User presses resume after lock | Remains locked until next session |
 
-**T07 demo sequence:** initialize approved strategy with two synthetic losing completed positions (`trade_1=-$80`, `trade_2=-$60`, exact amounts are fixture-only), assert `consecutive_losses=2`, then submit a third otherwise valid signal; engine rejects order and audit contains `TWO_CONSECUTIVE_LOSSES`. This tests the risk gate, **not historical profitability**.
+**T07 demo sequence:** initialize approved strategy with two synthetic losing completed positions (`trade_1=-$80`, `trade_2=-$100`, matching `two_loss_lock.fixture.json`; exact amounts are fixture-only). Each loss must be possible under the rules: the stop is at least 4 ticks below entry, so a 2-contract stop-out loses at least 4 × $10 × 2 = $80, assert `consecutive_losses=2`, then submit a third otherwise valid signal; engine rejects order and audit contains `TWO_CONSECUTIVE_LOSSES`. This tests the risk gate, **not historical profitability**.
 
 ## F. A/B integration contract
-- Canonical config: `../contracts/strategy.example.json` (`schema_version=1.0.0`). Do not change its keys without both teammates agreeing. This file specifies evaluation semantics for those fields.
+- Canonical config: `contracts/strategy.example.json` (`schema_version=1.0.0`). Do not change its keys without both teammates agreeing. This file specifies evaluation semantics for those fields.
 - A displays this preset and explicitly labels all engineering assumptions, especially **4 ticks** and **16:00 demo cutoff**.
 - B accepts user inputs → Nicrron converts to structured config → Pydantic validates → A displays for approval → only approved config reaches deterministic simulator.
-- Expose agreed v3 endpoints (`POST /api/strategy/generate`, `POST /api/strategy/approve`, `POST /api/simulation/run`, `GET /api/simulation/status`, `GET /api/audit`). Return mock fixture fallback when model/API unavailable, visibly labeled.
+- Expose the frozen routes from `PRD.md` section 8 (do not rename): `POST /api/strategies/generate`, `POST /api/strategies/approve`, `POST /api/scenarios/generate`, `POST /api/simulations/start`, `GET /api/simulations/{simulation_id}` (status), `GET /api/simulations/{simulation_id}/events` and `/report` (audit), `GET /api/health`. Return mock fixture fallback when model/API unavailable, visibly labeled.
 - **Accuracy metric:** `compliant_decisions / evaluated_decisions`; denominator includes rejected entry candidates; show raw counts. This is **rule-following accuracy**, not win rate or predictive accuracy.
 - “Lightweight generative backtest” means scenario narration and mock outcome simulation; **never call it verified historical backtest** or fabricate win rate.
 
