@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./styles/tokens.css";
 @import "./styles/components.css" layer(components);
+@import "./styles/app.css" layer(components);
 
 /* Map design tokens into Tailwind so utilities like bg-panel, text-ink-muted and border-line work.
    The default Tailwind palette is cleared: only design-system colours are available. */

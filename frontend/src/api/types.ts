@@ -99,13 +99,25 @@ export interface GenerateStrategyRequest {
 
 /**
  * PROVISIONAL: the PRD shows `clarification_questions: []` without an item shape.
- * The ClarificationPrompt component needs the quoted phrase, the question and concrete choices.
+ * Proposed to B: each choice carries the exact overrides to send back and the text that replaces the
+ * ambiguous phrase, so resolving a question is just another POST /api/strategies/generate.
  */
+export interface ClarificationChoice {
+  label: string
+  overrides: Record<string, unknown>
+  /** Replaces `source_text` in free_text. Empty string removes the phrase. */
+  replacement_text: string
+}
+
 export interface ClarificationQuestion {
+  id: string
   field: string | null
+  /** The user's own words, quoted back exactly. */
   source_text: string
   question: string
-  choices: string[]
+  choices: ClarificationChoice[]
+  /** When set, the user may type their own value in this unit instead of picking a choice. */
+  custom?: { unit: 'ticks'; field: string; min: number; max: number }
 }
 
 export interface GenerateStrategyResponse {
@@ -187,6 +199,11 @@ export interface Position {
 /** PROVISIONAL: the PRD shows `completed_trades: []` without an item shape. */
 export interface CompletedTrade {
   position_id: string
+  contracts: number
+  entry_price: number
+  /** Volume-weighted exit across partial exits. */
+  exit_price: number
+  exit_reason: Known<'STOP' | 'TARGET_THEN_STOP' | 'TARGET_THEN_CUTOFF' | 'CUTOFF'>
   realized_pnl_usd: number
 }
 
@@ -205,7 +222,10 @@ export interface SimulationState {
 
 // ---------- GET /api/simulations/{simulation_id}/events ----------
 
-export type EngineAction = Known<'OPEN_LONG' | 'BLOCK_ENTRY' | 'NO_TRADE'>
+/** OPEN_LONG, BLOCK_ENTRY and NO_TRADE come from the docs; the rest are PROVISIONAL, proposed to B. */
+export type EngineAction = Known<
+  'OPEN_LONG' | 'BLOCK_ENTRY' | 'NO_TRADE' | 'EXIT_ALL' | 'EXIT_PARTIAL' | 'EXIT_REMAINDER' | 'LOCK_ENTRIES' | 'NO_ACTION'
+>
 
 export interface AuditEvent {
   event_id: string
