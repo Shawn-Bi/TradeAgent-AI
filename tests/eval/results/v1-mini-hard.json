@@ -1,0 +1,1261 @@
+{
+  "run": {
+    "prompt_version": "v1",
+    "tag": "mini-hard",
+    "started_at": "2026-10-17T19:44:35.296833+00:00",
+    "finished_at": "2026-10-17T19:46:23.040811+00:00",
+    "inputs": "inputs_hard.draft.jsonl",
+    "base_url": "spawned",
+    "agent_id": "tradeagent-strategy-translator"
+  },
+  "summary": {
+    "total": 38,
+    "passed": 22,
+    "failed": 16,
+    "errors": 0,
+    "pass_rate": 0.579,
+    "by_category": {
+      "cutoff_extension": {
+        "pass": 0,
+        "fail": 5,
+        "error": 0
+      },
+      "over_ask": {
+        "pass": 5,
+        "fail": 2,
+        "error": 0
+      },
+      "compound_unit": {
+        "pass": 5,
+        "fail": 4,
+        "error": 0
+      },
+      "range": {
+        "pass": 2,
+        "fail": 2,
+        "error": 0
+      },
+      "implied_time": {
+        "pass": 4,
+        "fail": 0,
+        "error": 0
+      },
+      "fraction": {
+        "pass": 1,
+        "fail": 2,
+        "error": 0
+      },
+      "unsupported_limit": {
+        "pass": 4,
+        "fail": 0,
+        "error": 0
+      },
+      "invented": {
+        "pass": 1,
+        "fail": 1,
+        "error": 0
+      }
+    },
+    "failure_reasons": {
+      "missed:session.cutoff_local": 5,
+      "warning_missing:RISK_LOOSENED": 5,
+      "not_asked": 3,
+      "missed:entry.tolerance_ticks": 2,
+      "over_asked": 2,
+      "missed:exit.target_r": 2,
+      "forbidden:entry.tolerance_ticks": 1,
+      "invented:risk.max_completed_trades_per_session": 1,
+      "forbidden:stop.buffer_ticks": 1,
+      "forbidden:quantity_contracts": 1,
+      "missed:quantity_contracts": 1,
+      "missed:entry.ma_period": 1
+    }
+  },
+  "results": [
+    {
+      "id": "cut-01",
+      "category": "cutoff_extension",
+      "text": "Keep trading until 4:30 pm.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"16:30\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'Keep trading until 4:30 pm.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1307,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-cut-01",
+      "prism_trace_id": "ee78d7ea-b4d6-4a0c-afcf-949c1e2f07ea",
+      "prism_status": "SENT",
+      "wall_ms": 3263
+    },
+    {
+      "id": "cut-02",
+      "category": "cutoff_extension",
+      "text": "Let positions run until 16:45 before flattening.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"16:45\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'Let positions run until 16:45 before flattening.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 941,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-cut-02",
+      "prism_trace_id": "997f8e6c-3a6c-4203-8e69-1b0c71be29e3",
+      "prism_status": "SENT",
+      "wall_ms": 2929
+    },
+    {
+      "id": "cut-03",
+      "category": "cutoff_extension",
+      "text": "Flat by 5 instead of 4.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed stop.buffer_ticks = 5, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Flat by 5 instead of 4."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 784,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-cut-03",
+      "prism_trace_id": "141e3f92-8140-40f0-8b9e-8bcb1795e87e",
+      "prism_status": "SENT",
+      "wall_ms": 2633
+    },
+    {
+      "id": "cut-04",
+      "category": "cutoff_extension",
+      "text": "Give me an extra 30 minutes past the normal cutoff.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"16:30\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: extra 30 minutes past the normal cutoff"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 884,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-cut-04",
+      "prism_trace_id": "a6bdddb0-a017-4387-9848-f239e12310df",
+      "prism_status": "SENT",
+      "wall_ms": 2576
+    },
+    {
+      "id": "cut-05",
+      "category": "cutoff_extension",
+      "text": "I'm out at 4:15.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"16:15\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': \"I'm out at 4:15.\"}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 861,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-cut-05",
+      "prism_trace_id": "02ff2e8f-ad93-4fac-9ff0-fc563c85fa9d",
+      "prism_status": "SENT",
+      "wall_ms": 2526
+    },
+    {
+      "id": "ask-01",
+      "category": "over_ask",
+      "text": "Entry candle has to close green and above the 20 SMA; tolerance 2 ticks.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:entry.tolerance_ticks",
+        "over_asked"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed entry.tolerance_ticks = 2, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: tolerance 2 ticks"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 679,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-01",
+      "prism_trace_id": "6ffa010a-d9b4-4d97-a00e-e3a9235eda88",
+      "prism_status": "SENT",
+      "wall_ms": 2459
+    },
+    {
+      "id": "ask-02",
+      "category": "over_ask",
+      "text": "Keep the original stop on the second contract, no breakeven. Target 1.8R.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:exit.target_r",
+        "over_asked"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Keep the original stop on the second contract, no breakeven.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed exit.target_r = 1.8, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value.",
+        "Nicrron proposed exit.first_target_close_contracts = 1, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "Keep the original stop on the second contract, no breakeven."
+      ],
+      "warnings": [
+        "Nicrron: {'exit.target_r': 'Target 1.8R.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1073,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-02",
+      "prism_trace_id": "89dd6b2e-8ff0-4bdc-89a6-0155d15261f0",
+      "prism_status": "SENT",
+      "wall_ms": 2810
+    },
+    {
+      "id": "ask-03",
+      "category": "over_ask",
+      "text": "SMA only, I don't use EMAs. Trend SMA period 30.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "trend.period"
+      ],
+      "values": {
+        "trend.period": 30
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'trend.period': 'Trend SMA period 30.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 833,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-03",
+      "prism_trace_id": "abc510e6-ecbe-4def-8051-5ff2b59bf02f",
+      "prism_status": "SENT",
+      "wall_ms": 2634
+    },
+    {
+      "id": "ask-04",
+      "category": "over_ask",
+      "text": "Stop 5 ticks ($50) below the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 5
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop 5 ticks ($50) below the swing low.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 863,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-04",
+      "prism_trace_id": "52fd08ad-73de-43b1-8d41-954a2b8bb4c1",
+      "prism_status": "SENT",
+      "wall_ms": 2512
+    },
+    {
+      "id": "ask-05",
+      "category": "over_ask",
+      "text": "Stop 6t under the low, target 2:1.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r",
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "exit.target_r": 2,
+        "stop.buffer_ticks": 6
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop 6t under the low'}",
+        "Nicrron: {'exit.target_r': 'target 2:1'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 904,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-05",
+      "prism_trace_id": "7231d224-f6f0-42c6-abeb-3d1a27e4b3ff",
+      "prism_status": "SENT",
+      "wall_ms": 2724
+    },
+    {
+      "id": "ask-06",
+      "category": "over_ask",
+      "text": "Stop 4 ticks (0.004) under the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 4
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop 4 ticks (0.004) under the swing low.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1079,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-06",
+      "prism_trace_id": "8607d2c5-bcb6-49b5-b281-b45bda698cf0",
+      "prism_status": "SENT",
+      "wall_ms": 2971
+    },
+    {
+      "id": "ask-07",
+      "category": "over_ask",
+      "text": "Long only, flat by 15:45, max 2 trades.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "risk.max_completed_trades_per_session",
+        "session.cutoff_local"
+      ],
+      "values": {
+        "risk.max_completed_trades_per_session": 2,
+        "session.cutoff_local": "15:45"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'flat by 15:45'}",
+        "Nicrron: {'risk.max_completed_trades_per_session': 'max 2 trades'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1336,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-ask-07",
+      "prism_trace_id": "821b901e-05e1-4f5f-a09f-624baa7fcd2c",
+      "prism_status": "SENT",
+      "wall_ms": 3201
+    },
+    {
+      "id": "mix-01",
+      "category": "compound_unit",
+      "text": "Stop 6 ticks under the swing low and let the pullback dip 2 points under the SMA.",
+      "outcome": "fail",
+      "reasons": [
+        "forbidden:entry.tolerance_ticks=2"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "entry.tolerance_ticks",
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "entry.tolerance_ticks": 2,
+        "stop.buffer_ticks": 6
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "Your text mentions 'points'. NG_SIM stops are measured in ticks (1 tick = 0.001 price units). Restate the stop buffer in ticks (demo default: 4 ticks = 0.004)."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop 6 ticks under the swing low'}",
+        "Nicrron: {'entry.tolerance_ticks': 'let the pullback dip 2 points under the SMA'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1285,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-01",
+      "prism_trace_id": "f5213476-3492-45a8-b72d-0821823fb523",
+      "prism_status": "SENT",
+      "wall_ms": 3004
+    },
+    {
+      "id": "mix-02",
+      "category": "compound_unit",
+      "text": "Tolerance 3 ticks, stop 1.5 points.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:entry.tolerance_ticks"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What is the equivalent value of 1.5 points in ticks?",
+        "Not supported in this MVP: \"stop 1.5 points\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed stop.buffer_ticks = 3, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "stop 1.5 points"
+      ],
+      "warnings": [
+        "Nicrron: Tolerance 3 ticks"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1153,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-02",
+      "prism_trace_id": "a1805037-58a9-42e6-b823-f1b906d85498",
+      "prism_status": "SENT",
+      "wall_ms": 2887
+    },
+    {
+      "id": "mix-03",
+      "category": "compound_unit",
+      "text": "Stop 8 ticks, which is about 2 cents.",
+      "outcome": "fail",
+      "reasons": [
+        "not_asked"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 8
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop 8 ticks, which is about 2 cents.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 926,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-03",
+      "prism_trace_id": "f85ff1ad-0b40-4308-8eaf-78c89a6c7c2f",
+      "prism_status": "SENT",
+      "wall_ms": 3059
+    },
+    {
+      "id": "mix-04",
+      "category": "compound_unit",
+      "text": "Stop 10 ticks or $50, whichever is smaller.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"$50 stop\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed stop.buffer_ticks = 10, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "$50 stop"
+      ],
+      "warnings": [
+        "Nicrron: Stop 10 ticks or $50, whichever is smaller."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 836,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-04",
+      "prism_trace_id": "bc176d15-2a15-481d-86c6-e5abeeea833f",
+      "prism_status": "SENT",
+      "wall_ms": 2662
+    },
+    {
+      "id": "mix-05",
+      "category": "compound_unit",
+      "text": "Target 15 ticks or 1.5R, whichever comes first.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed exit.target_r = 1.5, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value.",
+        "Nicrron proposed exit.first_target_close_contracts = 1, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'exit.target_r': 'Target 15 ticks or 1.5R, whichever comes first.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 920,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-05",
+      "prism_trace_id": "b6f55401-9a45-4da6-a717-b23a67053efb",
+      "prism_status": "SENT",
+      "wall_ms": 2790
+    },
+    {
+      "id": "mix-06",
+      "category": "compound_unit",
+      "text": "Risk:reward 1:2.",
+      "outcome": "fail",
+      "reasons": [
+        "invented:risk.max_completed_trades_per_session=3"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r",
+        "risk.max_completed_trades_per_session"
+      ],
+      "values": {
+        "exit.target_r": 2,
+        "risk.max_completed_trades_per_session": 3
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'exit.target_r': 'Risk:reward 1:2.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 930,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-06",
+      "prism_trace_id": "9c1304aa-471a-4db7-93c6-2613aa263a1d",
+      "prism_status": "SENT",
+      "wall_ms": 2841
+    },
+    {
+      "id": "mix-07",
+      "category": "compound_unit",
+      "text": "Take profit at $150 a contract.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What is the equivalent of $150 in ticks for the profit target?",
+        "Not supported in this MVP: \"Take profit at $150 a contract.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Take profit at $150 a contract."
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 950,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-07",
+      "prism_trace_id": "99b1160b-7c2e-417d-83e5-96000924533f",
+      "prism_status": "SENT",
+      "wall_ms": 2784
+    },
+    {
+      "id": "mix-08",
+      "category": "compound_unit",
+      "text": "Stop .0035 under the low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed stop.buffer_ticks = 3, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'stop.buffer_ticks': 'Stop .0035 under the low.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 850,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-08",
+      "prism_trace_id": "98a4f23d-eaa3-4e6d-953f-8121963f2518",
+      "prism_status": "SENT",
+      "wall_ms": 2590
+    },
+    {
+      "id": "mix-09",
+      "category": "compound_unit",
+      "text": "Stop 0.04 below the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 40
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Stop 0.04 below the swing low."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 807,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-mix-09",
+      "prism_trace_id": "aa1b5333-ff44-47d7-8f74-3830a62dd162",
+      "prism_status": "SENT",
+      "wall_ms": 2532
+    },
+    {
+      "id": "rng-01",
+      "category": "range",
+      "text": "Stop 4 to 6 ticks below the swing low.",
+      "outcome": "fail",
+      "reasons": [
+        "forbidden:stop.buffer_ticks=5",
+        "not_asked"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 5
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Stop 4 to 6 ticks below the swing low."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 822,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-rng-01",
+      "prism_trace_id": "09c282da-0348-4213-8c32-d3d60a107225",
+      "prism_status": "SENT",
+      "wall_ms": 2674
+    },
+    {
+      "id": "rng-02",
+      "category": "range",
+      "text": "Target somewhere between 1.5 and 2R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Target somewhere between 1.5 and 2R.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed exit.target_r = 1.5, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "Target somewhere between 1.5 and 2R."
+      ],
+      "warnings": [
+        "Nicrron: Target set to 1.5R as a minimum."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1018,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-rng-02",
+      "prism_trace_id": "edf3ab21-0d6d-4d4e-a76f-ca33ac2c02ba",
+      "prism_status": "SENT",
+      "wall_ms": 3221
+    },
+    {
+      "id": "rng-03",
+      "category": "range",
+      "text": "Trade 2-3 contracts depending on the setup.",
+      "outcome": "fail",
+      "reasons": [
+        "forbidden:quantity_contracts=3",
+        "not_asked"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 3
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Trade 2-3 contracts depending on the setup.",
+        "RISK_LOOSENED: contracts per position 2 -> 3 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 926,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-rng-03",
+      "prism_trace_id": "97cf8edf-902e-4d0f-bba0-75f3344b7df7",
+      "prism_status": "SENT",
+      "wall_ms": 2799
+    },
+    {
+      "id": "rng-04",
+      "category": "range",
+      "text": "Swing low over the last 5 or 6 bars.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed stop.lookback_5m_bars = 6, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Swing low over the last 5 or 6 bars."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1277,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-rng-04",
+      "prism_trace_id": "0c00beec-b9c7-4f35-bf5a-e12c8a1dbd69",
+      "prism_status": "SENT",
+      "wall_ms": 3077
+    },
+    {
+      "id": "time-01",
+      "category": "implied_time",
+      "text": "No new entries after 3 pm, but let open trades run to the close.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"15:00\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: No new entries after 3 pm, but let open trades run to the close."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1208,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-time-01",
+      "prism_trace_id": "cc371e3d-597a-481e-bc11-af94c12148bb",
+      "prism_status": "SENT",
+      "wall_ms": 3069
+    },
+    {
+      "id": "time-02",
+      "category": "implied_time",
+      "text": "No trades after lunch.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"13:00\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'No trades after lunch.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 996,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-time-02",
+      "prism_trace_id": "a6376a1d-41a8-4582-9002-9dede9d5cf97",
+      "prism_status": "SENT",
+      "wall_ms": 2770
+    },
+    {
+      "id": "time-03",
+      "category": "implied_time",
+      "text": "Flat by 2:30 Chicago time.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"14:30\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'Flat by 2:30 Chicago time.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1035,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-time-03",
+      "prism_trace_id": "75e23e58-4794-4b1f-a30b-ab6133353ce5",
+      "prism_status": "SENT",
+      "wall_ms": 2804
+    },
+    {
+      "id": "time-04",
+      "category": "implied_time",
+      "text": "Only trade the first hour after the open.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed session.cutoff_local = \"09:00\", which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'session.cutoff_local': 'Only trade the first hour after the open.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1060,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-time-04",
+      "prism_trace_id": "c565c589-f92e-49c7-aca3-5bdfd9724535",
+      "prism_status": "SENT",
+      "wall_ms": 2811
+    },
+    {
+      "id": "frac-h1",
+      "category": "fraction",
+      "text": "Take half off at the first target. Make it 3 contracts.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 3
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed exit.first_target_close_contracts = 1, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Take half off at the first target. Make it 3 contracts.",
+        "RISK_LOOSENED: contracts per position 2 -> 3 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 925,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-frac-h1",
+      "prism_trace_id": "d61b0176-abe4-4481-8eb5-a7e054165960",
+      "prism_status": "SENT",
+      "wall_ms": 2647
+    },
+    {
+      "id": "frac-h2",
+      "category": "fraction",
+      "text": "Peel off half at 1.5R on a 5-lot.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:exit.target_r"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 5
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed exit.first_target_close_contracts = 3, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value.",
+        "Nicrron proposed exit.target_r = 1.5, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'exit.first_target_close_contracts': 'Peel off half at 1.5R on a 5-lot.'}",
+        "Nicrron: {'quantity_contracts': 'Peel off half at 1.5R on a 5-lot.'}",
+        "Nicrron: {'exit.target_r': 'Peel off half at 1.5R on a 5-lot.'}",
+        "RISK_LOOSENED: contracts per position 2 -> 5 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 2563,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-frac-h2",
+      "prism_trace_id": "706141a9-7e3b-4c08-b8e8-d1cf73cb652c",
+      "prism_status": "SENT",
+      "wall_ms": 4274
+    },
+    {
+      "id": "frac-h3",
+      "category": "fraction",
+      "text": "Trade 6, scale a third at 1R and another third at 2R.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:quantity_contracts"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What do you mean by 'scale a third at 1R and another third at 2R'? Please specify how this should be implemented in terms of exits.",
+        "Not supported in this MVP: \"scale a third at 1R and another third at 2R\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "scale a third at 1R and another third at 2R"
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1097,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-frac-h3",
+      "prism_trace_id": "a277e3ba-b27c-4df1-992d-a924e7e51543",
+      "prism_status": "SENT",
+      "wall_ms": 3005
+    },
+    {
+      "id": "lim-01",
+      "category": "unsupported_limit",
+      "text": "Stop trading for the day after 2 losing trades, consecutive or not.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed risk.consecutive_loss_lock = 2, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: {'risk.consecutive_loss_lock': 'Stop trading for the day after 2 losing trades, consecutive or not.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 925,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-lim-01",
+      "prism_trace_id": "cb8fc70b-6d64-4302-91b6-256b365c0fd5",
+      "prism_status": "SENT",
+      "wall_ms": 2683
+    },
+    {
+      "id": "lim-02",
+      "category": "unsupported_limit",
+      "text": "Max daily loss $500.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Max daily loss $500.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Max daily loss $500."
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 828,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-lim-02",
+      "prism_trace_id": "10fc28b7-4ec0-43b7-b2a2-a72b723a8cd2",
+      "prism_status": "SENT",
+      "wall_ms": 2544
+    },
+    {
+      "id": "lim-03",
+      "category": "unsupported_limit",
+      "text": "Stop for the day after my first winner.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Stop for the day after my first winner.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed risk.max_completed_trades_per_session = 1, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "Stop for the day after my first winner."
+      ],
+      "warnings": [
+        "Nicrron: {'risk.max_completed_trades_per_session': 'Stop for the day after my first winner.'}"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 916,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-lim-03",
+      "prism_trace_id": "33cc7fb0-af50-4d85-87cc-9f432c2b4a53",
+      "prism_status": "SENT",
+      "wall_ms": 2636
+    },
+    {
+      "id": "lim-04",
+      "category": "unsupported_limit",
+      "text": "Swing low is the lowest low of today's session.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Swing low is the lowest low of today's session.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it.",
+        "Nicrron proposed stop.lookback_5m_bars = 1, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [
+        "Swing low is the lowest low of today's session."
+      ],
+      "warnings": [
+        "Nicrron: Swing low is the lowest low of today's session."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1016,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-lim-04",
+      "prism_trace_id": "ba1786ed-3868-459e-82dd-d733e9d7684c",
+      "prism_status": "SENT",
+      "wall_ms": 2773
+    },
+    {
+      "id": "inv-01",
+      "category": "invented",
+      "text": "Use a tighter tolerance and the 50 SMA for entries.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:entry.ma_period"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed entry.tolerance_ticks = 0, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value.",
+        "Nicrron proposed entry.ma_period = 50, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: tighter tolerance",
+        "Nicrron: 50 SMA for entries"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 1017,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-inv-01",
+      "prism_trace_id": "d9944ec3-9a38-483b-985d-bb96d15b84b8",
+      "prism_status": "SENT",
+      "wall_ms": 2724
+    },
+    {
+      "id": "inv-02",
+      "category": "invented",
+      "text": "Make the target bigger and use 4 contracts.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 4
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "Nicrron proposed exit.target_r = 2, which StrategySpec v1 rejects (Extra inputs are not permitted). It was NOT applied; restate that requirement with a supported value."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: Make the target bigger",
+        "Nicrron: use 4 contracts",
+        "RISK_LOOSENED: contracts per position 2 -> 4 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": false,
+      "latency_ms": 972,
+      "nicrron_error": null,
+      "session_id": "eval-v1-mini-hard-inv-02",
+      "prism_trace_id": "e7cf35f3-a3f1-4617-ad5d-92f5cbf97a02",
+      "prism_status": "SENT",
+      "wall_ms": 2647
+    }
+  ]
+}
