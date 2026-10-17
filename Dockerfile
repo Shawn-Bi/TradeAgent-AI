@@ -1,5 +1,5 @@
-# One Railway service (docs/DEPLOY.md): build the frontend, then run FastAPI, which serves the API and
-# frontend/dist on one address. No secrets are baked in: Railway injects the variables at runtime.
+# One service (docs/DEPLOY.md): build the frontend, then run FastAPI, which serves the API and
+# frontend/dist on one address. No secrets are baked in: the host injects the variables at runtime.
 
 # ---- 1. frontend build ------------------------------------------------------------------------------
 FROM node:22-slim AS frontend
@@ -22,5 +22,5 @@ COPY simulation ./simulation
 COPY contracts ./contracts
 COPY two_loss_lock.fixture.json strategy.example.json ./
 COPY --from=frontend /app/frontend/dist ./frontend/dist
-# Railway sets PORT; 8000 locally.
+# The host sets PORT; 8000 locally.
 CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -1,7 +1,7 @@
 """TradeAgent AI backend — FastAPI gateway (simulation only, port 8000).
 
 Run from the repo root:  uvicorn backend.main:app --reload --port 8000
-Routes are frozen by PRD.md section 8.
+Routes are frozen by docs/PRD.md section 8.
 """
 from __future__ import annotations
 

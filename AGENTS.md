@@ -26,7 +26,7 @@ TradeAgent AI is a **simulation-only** paper-trading demo (Money Talks 2 hackath
 | `frontend/design/tokens.json` | Design system source; `npm run tokens` generates `src/styles/tokens.css` and `theme.css` |
 | `docs/kb/` | Knowledge Base sources uploaded to PRISM; `EVALUATOR.md` is the evaluator rubric |
 | `scripts/eval_run.py`, `tests/eval/` | v1 vs v2 prompt evaluation harness (63 inputs) |
-| `docs/DEPLOY.md` | Deploy decisions and steps (owned by Shawn; the target is moving to Render) |
+| `docs/DEPLOY.md` | Deploy decisions and steps (owned by Shawn). The live demo is on Render: https://tradeagent-ai.onrender.com |
 
 ## Commands
 
