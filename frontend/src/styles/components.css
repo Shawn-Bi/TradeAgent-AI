@@ -1,0 +1,74 @@
+/* TradeAgent AI component styles, from the design system components/bundle.css. Every value comes from tokens.css. */
+.ta-pad { padding: var(--space-4); }
+.ta-row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.ta-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.ta-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ta-muted { color: var(--ink-muted); }
+.ta-label { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); }
+
+/* Button */
+.ta-btn { font: 600 14px/20px var(--font-sans); padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--control-border); background: var(--panel); color: var(--ink); cursor: pointer; }
+.ta-btn:hover { background: color-mix(in srgb, var(--panel) 92%, var(--ink)); }
+.ta-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ta-btn[disabled] { opacity: .4; cursor: not-allowed; }
+.ta-btn--primary { background: var(--ledger); border-color: var(--ledger); color: var(--on-ledger); }
+.ta-btn--primary:hover { background: color-mix(in srgb, var(--ledger) 85%, var(--ink)); }
+.ta-btn--quiet { border-color: transparent; background: transparent; color: var(--ledger); }
+
+/* StatusPill */
+.ta-pill { display: inline-flex; align-items: center; gap: var(--space-1); font: 600 11px/16px var(--font-mono); letter-spacing: .04em; padding: 2px var(--space-2); border-radius: var(--radius-sm); border: 1px solid currentColor; }
+.ta-pill--draft { color: var(--marker-ink); background: var(--marker-soft); }
+.ta-pill--approved { color: var(--on-ledger); background: var(--ledger); border-color: var(--ledger); }
+.ta-pill--compliant { color: var(--compliant); background: var(--compliant-soft); }
+.ta-pill--blocked { color: var(--blocked); background: var(--blocked-soft); }
+.ta-pill--neutral { color: var(--ink-muted); background: var(--panel); }
+.ta-pill--synthetic { color: var(--ink-on-marker); background: var(--marker); border-color: var(--marker); }
+
+/* DemoBanner */
+.ta-banner { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; padding: var(--space-2) var(--space-4); background: var(--marker); color: var(--ink-on-marker); font-size: 13px; line-height: 20px; }
+.ta-banner strong { font: 600 11px/16px var(--font-mono); letter-spacing: .06em; }
+
+/* Panel / card */
+.ta-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.ta-card__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--line); }
+.ta-card__head h3 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
+.ta-card__body { padding: var(--space-4); }
+.ta-card--approved .ta-card__head { background: var(--ledger-soft); }
+.ta-card--draft .ta-card__head { background: var(--marker-soft); }
+.ta-card--locked { border-color: var(--blocked); }
+.ta-card--locked .ta-card__head { background: var(--blocked-soft); color: var(--blocked); }
+
+/* WizardSteps */
+.ta-steps { display: flex; flex-wrap: wrap; gap: 0; list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); overflow: hidden; }
+.ta-steps li { display: flex; gap: var(--space-2); align-items: baseline; padding: var(--space-2) var(--space-3); font-size: 13px; color: var(--ink-muted); border-right: 1px solid var(--line); }
+.ta-steps li:last-child { border-right: 0; }
+.ta-steps .n { font-family: var(--font-mono); font-size: 12px; }
+.ta-steps .done { color: var(--ledger); }
+.ta-steps .current { color: var(--ink); background: var(--ledger-soft); font-weight: 600; }
+
+/* RuleCard */
+.ta-rules { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+.ta-rules li { display: grid; grid-template-columns: 72px 1fr; gap: var(--space-3); font: 400 13px/20px var(--font-mono); }
+.ta-rules .k { font-weight: 500; color: var(--ink-muted); }
+.ta-assume { background: var(--marker-soft); color: var(--marker-ink); padding: 0 var(--space-1); border-radius: var(--radius-sm); }
+
+/* ClarificationPrompt */
+.ta-clarify { background: var(--marker-soft); border: 1px solid var(--marker-ink); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.ta-clarify q { font-family: var(--font-mono); font-size: 13px; }
+.ta-choice { display: flex; gap: var(--space-2); align-items: center; font-size: 14px; }
+
+/* AuditTable */
+.ta-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ta-table th { text-align: left; font: 600 11px/16px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--line); }
+.ta-table td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--grid); font-family: var(--font-mono); font-variant-numeric: tabular-nums; vertical-align: top; }
+.ta-table td.reason { font-family: var(--font-sans); }
+.ta-table tr.is-blocked td { background: var(--blocked-soft); }
+
+/* ConformanceMeter */
+.ta-meter { display: flex; flex-direction: column; gap: var(--space-2); }
+.ta-meter__fig { font: 500 28px/32px var(--font-mono); font-variant-numeric: tabular-nums; }
+.ta-meter__bar { height: 8px; border-radius: var(--radius-sm); background: var(--grid); overflow: hidden; }
+.ta-meter__bar span { display: block; height: 100%; background: var(--compliant); }
+
+/* Dot-grid ground */
+.ta-gridground { background-color: var(--ground); background-image: radial-gradient(var(--grid) 1px, transparent 1.5px); background-size: var(--space-6) var(--space-6); }
