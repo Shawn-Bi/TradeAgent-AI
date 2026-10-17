@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
+import { PriceChart } from '../components/PriceChart'
 import { SelectField } from '../components/SelectField'
 import { StatusPill } from '../components/StatusPill'
 import { SEED, type Flow } from '../flow/useFlow'
@@ -99,7 +100,8 @@ export function SimulateStep({ flow }: { flow: Flow }) {
           </Card>
 
           <Card title="What the engine did" right={<span className="ta-mono text-meta ta-muted">{run.state.simulation_id}</span>}>
-            <div className="ta-card__body">
+            <div className="ta-card__body ta-stack">
+              <PriceChart run={run} spec={spec} />
               <SessionTimeline run={run} cutoff={spec.session.cutoff_local} />
             </div>
           </Card>
