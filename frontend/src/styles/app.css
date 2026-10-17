@@ -79,7 +79,6 @@
 
 /* Scenario cards */
 .ta-scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
-.ta-spark { width: 100%; height: 56px; display: block; }
 
 /* Session timeline */
 .ta-timeline { display: block; width: 100%; height: auto; }
