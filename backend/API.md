@@ -247,7 +247,7 @@ Tracing never blocks: a PRISM error is reported and the request still succeeds. 
   with `{project_id, agent_id: "tradeagent-strategy-translator", query: <free_text>, limit: 3}`. The snippets go into the
   system prompt as cited context (`[S1] source: NG_SIM_UNITS.md ...`), together with an explicit unit table and
   "never invent a value; ask". The search is also attached to the PRISM trace as a `knowledge_base_search` span so
-  evaluators see it as `{context}` (`prism.context_span`: `SENT` / `FAILED`). The sources are `docs/kb/*.md`, uploaded
+  evaluators see it as `{context}`, next to an `llm` span and a root span that carry the reply as `{output}` (`prism.context_span`: `SENT` / `FAILED`). The sources are `docs/kb/*.md`, uploaded
   in PRISM and assigned to the agent.
 - `v1`: the original prompt, no retrieval. Kept as the baseline for the v1 vs v2 evaluation.
 

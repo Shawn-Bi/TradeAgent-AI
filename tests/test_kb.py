@@ -54,10 +54,25 @@ def test_v2_retrieves_cites_and_reports_sources(client, nicrron, prism):
 
     span_req = json.loads(prism.span_calls[0].content)
     assert span_req["trace_id"] == "trace-1" and span_req["session_id"] == "conv-kb"
-    span = span_req["spans"][0]
-    assert span["span_type"] == "tool" and span["name"] == "knowledge_base_search"
-    assert span["input_text"] == TEXT and "Points are NOT ticks." in span["output_text"]
+    root, kb_span, llm = span_req["spans"]
+    assert kb_span["span_type"] == "tool" and kb_span["name"] == "knowledge_base_search"
+    assert kb_span["input_text"] == TEXT and "Points are NOT ticks." in kb_span["output_text"]
     assert body["prism"]["context_span"] == "SENT"
+
+
+def test_v2_run_spans_keep_the_reply_as_the_final_answer(client, nicrron, prism):
+    """PRISM reads {output} from the spans: the reply must be the run's output, never the retrieved snippets."""
+    nicrron.reply(GOOD)
+    _generate(client, session_id="conv-kb")
+
+    reply = prism.bodies()[0]["output_message"]
+    assert json.loads(reply)["overrides"] == GOOD["overrides"]
+    root, kb_span, llm = json.loads(prism.span_calls[0].content)["spans"]
+    assert root["parent_span_id"] is None and root["span_type"] == "chain"
+    assert kb_span["parent_span_id"] == root["span_id"] and llm["parent_span_id"] == root["span_id"]
+    assert llm["span_type"] == "llm" and llm["start_time"] == kb_span["end_time"]
+    assert root["output_text"] == reply and llm["output_text"] == reply
+    assert "Points are NOT ticks." not in root["output_text"] + llm["output_text"]
 
 
 def test_kb_http_error_never_blocks_generation(client, nicrron, prism):
@@ -107,7 +122,8 @@ def test_kb_no_match_is_still_a_traced_retrieval(client, nicrron, prism):
     prism.kb_results = []
     body = _generate(client)
     assert body["knowledge_base"]["status"] == "NO_MATCH" and body["knowledge_base"]["sources_used"] == []
-    span = json.loads(prism.span_calls[0].content)["spans"][0]
+    span = json.loads(prism.span_calls[0].content)["spans"][1]
+    assert span["name"] == "knowledge_base_search"
     assert span["output_text"].startswith("No Knowledge Base snippets matched")
 
 
