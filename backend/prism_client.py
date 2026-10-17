@@ -84,9 +84,11 @@ def send_trace(*, session_id: str, model: str | None, input_messages: list[dict]
         return {"status": "FAILED", "trace_id": None,
                 "error": f"PRISM returned HTTP {resp.status_code}: {_redact(resp.text, cfg['api_key'])[:300]}"}
     try:
-        trace_id = resp.json().get("id")
+        data = resp.json()
     except ValueError:
-        trace_id = None
+        data = None
+    # A 200 whose body is not a JSON object (e.g. ``[]``) still counts as sent, just without an id.
+    trace_id = data.get("id") if isinstance(data, dict) else None
     result = {"status": "SENT", "trace_id": trace_id, "error": None,
               "send_ms": int((time.monotonic() - started) * 1000)}
     if retrieval is not None:

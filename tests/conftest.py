@@ -94,6 +94,7 @@ class PrismMock:
         self.kb_status = 200
         self.kb_results = copy.deepcopy(KB_RESULTS)
         self.kb_exc = None
+        self.trace_body = None  # overrides the /api/traces 200 body when set
 
     def _path(self, path: str) -> list[httpx.Request]:
         return [r for r in self.requests if r.url.path == path]
@@ -122,6 +123,8 @@ class PrismMock:
             return httpx.Response(200, json={"ingested": 1})
         if self.status != 200:
             return httpx.Response(self.status, text="upstream broke")
+        if self.trace_body is not None:
+            return httpx.Response(200, json=self.trace_body)
         return httpx.Response(200, json={"id": f"trace-{len(self.calls)}", "cost_usd": 0.0})
 
     def bodies(self) -> list[dict]:
