@@ -18,9 +18,11 @@ def _no_live_nicrron(tmp_path, monkeypatch):
     from backend import prism_client
 
     monkeypatch.setenv("NICRRON_ENV_FILE", str(tmp_path / "missing.env"))
-    for name in ("NICRRON_API_KEY", "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST"):
-        monkeypatch.delenv(name, raising=False)
+    for var in ("NICRRON_API_KEY", "DEMO_ACCESS_TOKEN", "NICRRON_MAX_CALLS_PER_HOUR", "NICRRON_MAX_CONCURRENT",
+                "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST"):
+        monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("NICRRON_MAX_RETRIES", "0")
+    nicrron_client.reset_budget()
 
     def guard(request):
         raise AssertionError(f"unexpected live request to {request.url}")

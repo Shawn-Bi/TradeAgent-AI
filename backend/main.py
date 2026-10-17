@@ -5,8 +5,8 @@ Routes are frozen by PRD.md section 8.
 """
 from __future__ import annotations
 
+import hmac
 import logging
-import os
 import threading
 
 from fastapi import FastAPI, Request
@@ -19,20 +19,46 @@ from simulation import FIXTURES, FixtureError, get_report, run_simulation
 from simulation.scenarios import generate_scenarios
 
 from . import audit, nicrron_client, prism_client
+from .config import setting
 from .errors import ApiError, envelope
 from .schemas import GenerateRequest, ScenarioRequest, SimulationStartRequest, StrategyRef
 from .strategy_service import strategies
 
 CONTRACT_VERSION = "1.0.0"
+TOKEN_HEADER = "X-Demo-Token"
+OPEN_PATHS = {"/api/health"}
+DOCS_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json"}
 log = logging.getLogger("tradeagent")
 
 app = FastAPI(title="TradeAgent AI backend (simulation only)", version=CONTRACT_VERSION)
+
+
+@app.middleware("http")
+async def _demo_token_guard(request: Request, call_next):
+    """When DEMO_ACCESS_TOKEN is set (public tunnel), every route except health needs the token.
+
+    Registered before CORS so CORS stays outermost: preflights are answered there and 401s
+    still carry CORS headers the browser can read.
+    """
+    token = setting("DEMO_ACCESS_TOKEN")
+    if token and request.method != "OPTIONS":
+        path = request.url.path
+        if path in DOCS_PATHS:
+            return JSONResponse(envelope("NOT_FOUND", "Not Found"), status_code=404)
+        if path not in OPEN_PATHS:
+            supplied = request.headers.get(TOKEN_HEADER, "")
+            if not hmac.compare_digest(supplied.encode(), token.encode()):
+                return JSONResponse(envelope("UNAUTHORIZED", f"Missing or invalid {TOKEN_HEADER} header",
+                                             TOKEN_HEADER), status_code=401)
+    return await call_next(request)
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in os.getenv(
+    allow_origins=[o.strip() for o in setting(
         "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if o.strip()],
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", TOKEN_HEADER],
 )
 
 _sims_lock = threading.Lock()
@@ -159,4 +185,5 @@ def reset_state() -> None:
         _simulations.clear()
 
 
-log.info("Nicrron adapter status: %s; PRISM tracing: %s", nicrron_client.status(), prism_client.status())
+log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM tracing: %s", nicrron_client.status(),
+         "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF", prism_client.status())

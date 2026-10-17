@@ -81,6 +81,11 @@ curl -s localhost:8000/api/simulations/sim-42-two-loss-lock-v1/report
 
 Without a key, or when Nicrron fails, free text returns the labeled demo preset (`generator: "PRESET_FALLBACK"`, `nicrron.status` `FAILED`/`NOT_CONFIGURED`), which cannot be approved; empty free text gives the approvable demo preset. Tests never call the real API.
 
+**Public demo access (Cloudflare Quick Tunnel):** for a teammate on another computer.
+1. In `backend/.env` set `DEMO_ACCESS_TOKEN=<random>` (`python -c "import secrets; print(secrets.token_urlsafe(32))"`) and `CORS_ORIGINS=<teammate's exact frontend origin>`, then restart uvicorn. With the token set, every route except `GET /api/health` requires the `X-Demo-Token` header, docs are hidden, and paid Nicrron calls are capped (`NICRRON_MAX_CALLS_PER_HOUR`, default 20; `NICRRON_MAX_CONCURRENT`, default 1).
+2. Run `cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8000` (official release from github.com/cloudflare/cloudflared) and share the printed `https://*.trycloudflare.com` URL. The URL changes on every restart and stops working when the process stops.
+3. Send the token privately. Stop the tunnel and rotate the token after the demo.
+
 **Honest status:** PRISM tracing covers the Nicrron strategy-translation step (set `PRISMTRACE_*` in `backend/.env`; see `backend/API.md`). Knowledge Base retrieval, root-cause analysis and the v1/v2 evaluator are not built yet. State is in memory (restart → generate/approve again). Demo P&L values come from crafted synthetic candles (e.g. −$260 per loss), not the illustrative −$80/−$100 in `two_loss_lock.fixture.json`, which is replayed separately in tests through the same risk gate.
 
 ## Demo proof

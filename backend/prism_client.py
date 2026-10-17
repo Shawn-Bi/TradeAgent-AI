@@ -18,7 +18,8 @@ import time
 
 import httpx
 
-from .nicrron_client import _redact, _setting
+from .config import setting as _setting
+from .nicrron_client import _redact
 
 DEFAULT_HOST = "https://prism.blockconvey.com"
 AGENT_ID = "tradeagent-strategy-translator"
