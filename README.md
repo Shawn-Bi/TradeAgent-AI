@@ -1,98 +1,117 @@
 # TradeAgent AI
-**Your personal no-code quant trading agent in ~3 minutes.**
 
-Turn intraday trading rules into an understandable, testable and auditable **mock** trading agent without coding. Choose timeframes, entry signals, stop-loss and risk lock; AI generates a reviewable strategy, shows clearly labeled hypothetical scenarios, and a deterministic paper engine records whether it follows the rules.
+TradeAgent AI is a paper-trading demo for the Money Talks 2 hackathon (October 17, 2026, Money Intelligence track). A trader describes intraday rules in plain English, Nicrron drafts a strategy and asks about anything unclear, the trader approves one exact version, and a deterministic engine replays synthetic sessions and records whether every decision followed the rules.
 
-**Hackathon track:** Money Intelligence (supporting Trust & Risk / Money Operations). **Status:** hackathon prototype specification; do not claim completed integrations until verified.
+The model only proposes; the engine enforces. Nicrron never places an order, approves a strategy or loosens a risk rule.
 
-## What the first user can do
-1. Select fictional `NG_SIM` natural gas futures account.
-2. Configure 15m trend + 5m pullback, long only, explicit stop ticks, 1.2R target, partial exit and 2-loss lock.
-3. Generate and approve strategy rules (AI adapter optional; built-in preset fallback).
-4. View *synthetic scenario reasoning*, not a historical backtest.
-5. Run deterministic paper simulation; see third entry blocked after two completed losses.
-6. Inspect local decision audit and, if connected, PRISM traces.
+[![TradeAgent AI demo video: Your rules. Enforced.](docs/media/tradeagent-demo-poster.jpg)](docs/media/tradeagent-demo.mp4)
 
-## Frozen StrategySpec v1 — decisions made in advance
-`contracts/strategy.example.json` is the **single source of truth**. All members must copy the exact names and nested types. These are **editable demo assumptions**, not trading recommendations or confirmed user preferences.
+**Demo video:** [Watch the 80-second demo](docs/media/tradeagent-demo.mp4). The opening parodies AI-trading-bot ads with stock clips. Every app screen after it was captured from the real app running locally, with Nicrron and PRISM connected, on synthetic data.  
+**Source:** https://github.com/Shawn-Bi/TradeAgent-AI
 
-- Instrument `NG_SIM`, fictional TradeAgent Paper Exchange and account `DEMO-NG-001`; price quoted USD/MMBtu. **DEMO-ONLY** tick size `0.001`, demo tick value `$10` per contract; no claim of verified exchange specifications.
-- Long only. Trend 15-minute SMA(20), slope rising over 2 bars and close above SMA; entry 5-minute SMA(20), pullback within 3 ticks, bullish confirmation defined `close > open AND close > MA`. 1-minute refinement **disabled** for five-hour MVP.
-- Stop below minimum low of previous 5 completed 5m candles by **4 ticks** (NOT “4 points”; source wording ambiguous). User must see and approve tick units. Entry risk = entry minus stop; reject nonpositive risk.
-- Two mock contracts; profit target at `entry + 1.2 × initial risk`, exit one contract at target; second contract exits only at protective stop or session cutoff (no trailing stop in MVP). Conservative intrabar tie: if both stop and target hit in same bar, assume stop first. Fills at trigger price; fees and slippage zero for MVP and explicitly disclosed.
-- Up to 3 **completed positions** per simulated session; two consecutive *completed losing positions* lock new entries until next session. Sum all partial exits to determine each position's realized P&L. A winning/breakeven completed position resets consecutive-loss count. Risk-reducing exits always allowed. Flat by demo cutoff `16:00 America/New_York` (not a claim about NG exchange hours). Same seeded candle fixture must reproduce output.
-- `approval_status` starts `DRAFT`; server stores `APPROVED` version; any edits invalidate approval. No real broker connection, no actual historical market data.
-- Synthetic scenarios are **hypothetical**, not historical backtests. Show no win rate, maximum drawdown, or profit figure unless computed from deterministic simulated candles; label synthetic prominently.
-- Conformance = compliant eligible rule decisions / all eligible rule decisions; include veto events, return N/A when denominator zero. PRISM SDK optional pending verified docs; local audit mandatory.
+## Demo flow
 
+1. **Preset.** Start from the fictional `NG_SIM` natural gas futures account (`DEMO-NG-001`): 15-minute trend, 5-minute pullback entry, stop 4 ticks below the swing low, 1.2R target, two contracts, and a lock after two losses in a row. The risk per trade is shown in dollars before anything runs.
+2. **Generate.** Change a rule in your own words, for example "Put the stop 4 points below the swing low." Nicrron notices that the engine counts ticks, not points, and asks instead of guessing. Answer "4 ticks" and generate again. The panel shows which fields Nicrron read, which Knowledge Base sources it used, and the PRISM trace.
+3. **Approve.** Review the plain-English IF/THEN rules and approve one immutable version. A version with open questions cannot be approved, and any later edit starts a new draft.
+4. **Scenario.** See clearly labeled hypothetical scenarios (trend, range, adverse), not a historical backtest.
+5. **Simulate.** Run the `two-loss-lock` session. Two trades hit their stops (−$260 each), new entries lock, and the third otherwise valid entry is marked **BLOCKED** at 12:30.
+6. **Audit.** Check expected against actual action for every decision (84 of 84 followed the rules), the blocked entry and its reason, the proposed vs approved strategy, and whether the Nicrron call behind the approved version was traced in PRISM.
 
-## Shared integration contract
-Read `contracts/strategy.example.json` before writing code. **Do not rename fields or API routes.** All API endpoints and response examples are frozen in `PRD.md` section 8. Backend routes: `POST /api/strategies/generate`, `POST /api/strategies/approve`, `POST /api/scenarios/generate`, `POST /api/simulations/start`, `GET /api/simulations/{simulation_id}`, `/events`, `/report`, and `GET /api/health`.
+Other sessions: `winning-reset`, `cutoff`, `ambiguous-bar`, `trend-fail`, and the seeded `standard`, `trend`, `range` and `adverse`.
 
-## Planned repo layout
-```text
-TradeAgent-AI/
-├── README.md
-├── PRD.md
-├── TEAM_ISSUES_AND_PROMPTS_3P.md
-├── TEAM_ISSUES_AND_PROMPTS_2P.md
-├── contracts/strategy.example.json
-├── frontend/           # React + TypeScript
-├── backend/            # FastAPI routes and strategy generation
-├── simulation/         # Python deterministic engine
-└── tests/              # shared fixtures and acceptance tests
+## Nicrron and PRISM integration
+
+`backend/nicrron_client.py` calls Nicrron (`https://api.nicrron.ai/v1`, model `nicrron/auto`, temperature 0) for one bounded task: turn the trader's words into a StrategySpec draft plus clarification questions.
+
+- The backend validates every response. Unsupported, invalid or unsafe output becomes a clarification question, and the model can never set protected fields.
+- Paid calls are capped per hour (`NICRRON_MAX_CALLS_PER_HOUR`, default 20) and run one at a time.
+- Without a key, or when Nicrron fails, free text returns a labeled demo preset that cannot be approved. Empty free text uses the approvable demo preset.
+
+Nicrron never decides whether a rule passes, places an order, approves a version or changes the engine's limits. Approval and the risk gate stay deterministic.
+
+PRISM covers the agent quality loop the track asks for:
+
+- **Tracing.** Every Nicrron call is one PRISM trace from agent `tradeagent-strategy-translator`, grouped by drafting session. Engine decisions stay in the local audit, because they are deterministic, not agent output.
+- **Knowledge Base.** Prompt `v2` (the default) searches the PRISM Knowledge Base built from [`docs/kb/`](docs/kb/README.md) before each call and cites the snippets in the prompt; the search is attached to the trace. Prompt `v1` is the original baseline without retrieval.
+- **Evaluation.** `scripts/eval_run.py` sends the 63 trader inputs in `tests/eval/inputs.jsonl` (clear rules, unit traps, fractions, unsupported asks, risk loosening, typos and vague text) through the real backend and grades each draft; the rubric is in [`docs/kb/EVALUATOR.md`](docs/kb/EVALUATOR.md). On October 17 we ran v1 and v2 on the same inputs (these 63 plus 38 harder ones: unit traps, ranges, cutoffs, unsupported limits), 404 runs in all, each a real Nicrron call and a PRISM trace:
+  - `nicrron/auto` (routed to Claude Opus 5.5): v1 61/63 and v2 63/63 on the original set; v1 37/38 and v2 35/38 on the harder set. The remaining failures are later-cutoff requests where the model asks instead of applying.
+  - `openai/gpt-4o-mini`, the same model for both versions: v1 59/101, v2 57/101. Runs that set a value the trader never stated fell from 11 to 2, and unit errors from 4 to 0. In exchange v2 asks more unnecessary questions (23 runs vs 15); an extra question blocks approval and does not apply a value.
+  - Failure cluster (v1, gpt-4o-mini, 4 runs, one cause): non-tick units copied into tick fields. "2 points" became 2 ticks (`unit-05`, `mix-01`), a bare "5" became 5 ticks (`unit-06`), "2 cents" became 20 ticks (`unit-10`). v2's unit rules and Knowledge Base context removed all four.
+  - PRISM evaluator limitation: in PRISM the v2 traces show the retrieved Knowledge Base context as the trace output instead of the model's reply, so the PRISM evaluator has not been run on v2 traces. The scores above come from the local harness.
+
+PRISM never blocks a request: if it is down, drafting still works and the status says `FAILED`. The Audit step shows `CONNECTED` only when PRISM accepted the trace of the Nicrron call that wrote the approved version; otherwise `LOCAL_ONLY`.
+
+## Run locally
+
+Requirements:
+
+- Python 3.13 and Node.js 22 or later (tested with Python 3.13.0 and Node.js 24)
+- optional: a Nicrron key and PRISM project credentials
+
+The app runs without any keys, using the demo preset and the local audit. To turn on Nicrron and PRISM, copy `backend/.env.example` to `backend/.env` (git-ignored) and fill in:
+
+```bash
+NICRRON_API_KEY=your_nicrron_key
+PRISMTRACE_PROJECT_ID=your_prism_project_id
+PRISMTRACE_API_KEY=your_prism_key
 ```
 
-## Running the MVP
-This repository's documentation does **not** imply code is already implemented. Team must add `frontend/`, `backend/`, `simulation/` and runnable commands. Recommended local defaults: frontend port `5173`, backend `8000`, `VITE_API_BASE_URL=http://localhost:8000`. Use `NICRRON_API_KEY` only if API access is confirmed; otherwise fallback preset. PRISM optional with local audit always available. Never commit `.env` or secrets.
+Start the backend from the repo root (on Windows use `.venv/Scripts/python.exe`):
 
-## Backend (owner B) — implemented
-FastAPI gateway (`backend/`) + deterministic simulator (`simulation/`), one process on port 8000. Works with no API keys: preset fallback, local audit, `prism_status: LOCAL_ONLY`. Full request/response reference for the frontend: **[`backend/API.md`](backend/API.md)**.
-
-**Start (Windows, from repo root):**
 ```bash
 python -m venv .venv
-.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
-.venv/Scripts/python.exe -m uvicorn backend.main:app --reload --port 8000
+.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/python -m uvicorn backend.main:app --reload --port 8000
 ```
-(macOS/Linux: use `.venv/bin/python`.) Interactive docs: `http://localhost:8000/docs`.
 
-**Test:**
+Start the frontend in a second terminal:
+
 ```bash
-.venv/Scripts/python.exe -m pytest -q
+cd frontend
+npm ci
+npm run dev
 ```
 
-**Smoke the demo flow with curl:**
+Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to port 8000, so development works like the single-origin deployment. API docs are at [http://localhost:8000/docs](http://localhost:8000/docs).
+
+`.venv/bin/python -m backend.nicrron_smoke` makes one real Nicrron request and prints `RESULT: REAL_API_VERIFIED`, or exits without a request when the key is missing. For an offline backup with no backend, run `VITE_API_MODE=mock npm run dev` in `frontend/`; a permanent OFFLINE MOCK strip shows the mode.
+
+**Deployment.** The `Dockerfile` builds the frontend and runs FastAPI, which serves `/api/*` and the frontend on one address, so no key or token reaches the browser. Keys are set as the host's environment variables. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+## Validate
+
 ```bash
-curl -s -X POST localhost:8000/api/strategies/generate -H "Content-Type: application/json" -d '{"template_id":"ng-long-pullback-v1","overrides":{},"free_text":""}'
-curl -s -X POST localhost:8000/api/strategies/approve -H "Content-Type: application/json" -d '{"strategy_id":"ng-demo-v1","version":1}'
-curl -s -X POST localhost:8000/api/simulations/start -H "Content-Type: application/json" -d '{"strategy_id":"ng-demo-v1","version":1,"seed":42,"fixture":"two-loss-lock"}'
-curl -s localhost:8000/api/simulations/sim-42-two-loss-lock-v1/report
+.venv/bin/python -m pytest -q
+cd frontend && npm run lint && npm run build
 ```
 
-**Frontend integration:** set `VITE_API_BASE_URL=http://localhost:8000` (CORS allows `localhost:5173` / `127.0.0.1:5173`; change with `CORS_ORIGINS`). Call the routes in the order in `backend/API.md`, always reusing the `version` returned by generate, and treat all non-2xx as `{"error":{"code","message","field"}}`. Responses contain every PRD §8 field plus documented additive fields.
+The backend tests cover the engine and risk gate, the two-loss lock fixture, strategy versions and approval, Nicrron output validation, PRISM tracing, Knowledge Base retrieval, security limits, the eval harness and frontend serving. They mock Nicrron and PRISM and never touch the network.
 
-**Layout:** `backend/main.py` routes · `backend/schemas.py` Pydantic StrategySpec · `backend/strategy_service.py` preset/versions/approval/ambiguity checks · `backend/nicrron_client.py` LLM adapter (not wired) · `backend/audit.py` JSONL audit in `data/audit/` · `simulation/engine.py` `run_simulation()` / `get_report()` · `simulation/risk.py` shared risk gate · `simulation/candles.py` synthetic fixtures · `tests/`.
+The evaluation makes real Nicrron calls and PRISM traces and starts its own backend:
 
-**Nicrron (AI strategy translation):** implemented in `backend/nicrron_client.py` with the official OpenAI Python SDK against `https://api.nicrron.ai/v1` (chat completions, model `nicrron/auto`, `temperature 0`). Nicrron only proposes a DRAFT; unsupported, invalid or unsafe output becomes clarification questions, and approval plus the deterministic risk gate are unchanged. To enable it:
-1. Copy `backend/.env.example` to `backend/.env` (git-ignored).
-2. Set `NICRRON_API_KEY=sk-af-...` (key from your Nicrron dashboard). No restart needed.
-3. Verify with one real request: `.venv/Scripts/python.exe -m backend.nicrron_smoke` (prints `RESULT: REAL_API_VERIFIED`, or exits without any request when the key is missing).
+```bash
+.venv/bin/python scripts/eval_run.py --prompt-version v1
+.venv/bin/python scripts/eval_run.py --prompt-version v2
+.venv/bin/python scripts/eval_run.py --compare tests/eval/results/v1-<tag>.json tests/eval/results/v2-<tag>.json
+```
 
-Without a key, or when Nicrron fails, free text returns the labeled demo preset (`generator: "PRESET_FALLBACK"`, `nicrron.status` `FAILED`/`NOT_CONFIGURED`), which cannot be approved; empty free text gives the approvable demo preset. Tests never call the real API.
+## Safety and current limits
 
-**Public demo access (Cloudflare Quick Tunnel):** for a teammate on another computer.
-1. In `backend/.env` set `DEMO_ACCESS_TOKEN=<random>` (`python -c "import secrets; print(secrets.token_urlsafe(32))"`) and `CORS_ORIGINS=<teammate's exact frontend origin>`, then restart uvicorn. With the token set, every route except `GET /api/health` requires the `X-Demo-Token` header, docs are hidden, and paid Nicrron calls are capped (`NICRRON_MAX_CALLS_PER_HOUR`, default 20; `NICRRON_MAX_CONCURRENT`, default 1).
-2. Run `cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8000` (official release from github.com/cloudflare/cloudflared) and share the printed `https://*.trycloudflare.com` URL. The URL changes on every restart and stops working when the process stops.
-3. Send the token privately. Stop the tunnel and rotate the token after the demo.
+- Simulation only: no broker connection, no real orders, no real money, no financial advice.
+- `NG_SIM` is a fictional instrument. The tick size (0.001), tick value ($10), 16:00 cutoff, fills at the trigger price and zero fees and slippage are demo assumptions, and they are disclosed in the app.
+- All market data is synthetic. Scenarios are hypothetical, not historical backtests. The app shows no win rate, drawdown or expected return; rule-following is not profitability.
+- Long only, one market, two contracts, at most three completed trades a session. Shorts, trailing stops, time-of-day filters and other unsupported asks become clarification questions.
+- State is in memory: after a backend restart, generate and approve again.
+- The P&L in the demo (−$260 per loss) comes from crafted synthetic candles. The illustrative −$80/−$100 values in `two_loss_lock.fixture.json` are replayed separately in the tests through the same risk gate.
 
-**Honest status:** PRISM tracing covers the Nicrron strategy-translation step (set `PRISMTRACE_*` in `backend/.env`; see `backend/API.md`). Prompt v2 retrieves from the PRISM Knowledge Base (`docs/kb/`) before each Nicrron call; `scripts/eval_run.py` runs the v1/v2 evaluation inputs in `tests/eval/` (rubric: `docs/kb/EVALUATOR.md`). Root-cause clustering and evaluator scoring run in the PRISM UI. State is in memory (restart → generate/approve again). Demo P&L values come from crafted synthetic candles (e.g. −$260 per loss), not the illustrative −$80/−$100 in `two_loss_lock.fixture.json`, which is replayed separately in tests through the same risk gate.
+## Project docs and history
 
-## Demo proof
-`two-loss-lock` deterministic fixture → two completed losing positions → third entry refused (`BLOCK_ENTRY`) → audit shows expected and actual actions → no order opened. PRISM status must reflect reality (`LOCAL_ONLY` when disconnected).
+- [`contracts/strategy.example.json`](contracts/strategy.example.json): the frozen StrategySpec v1 schema. Routes and fields are frozen in [`docs/PRD.md`](docs/PRD.md) §8; new response fields are additive.
+- [`backend/API.md`](backend/API.md): every route, field and error.
+- [`docs/FIRST_CUSTOMER_STRATEGY.md`](docs/FIRST_CUSTOMER_STRATEGY.md): the first customer's strategy and the demo assumptions.
+- [`frontend/README.md`](frontend/README.md): frontend structure and styles.
+- [`AGENTS.md`](AGENTS.md): working rules for people and AI agents in this repo.
+- [`docs/TEAM_ISSUES_AND_PROMPTS_2P.md`](docs/TEAM_ISSUES_AND_PROMPTS_2P.md) and [`docs/FRONTEND_HANDOFF_A.md`](docs/FRONTEND_HANDOFF_A.md): the original five-hour build plan, kept for reference.
 
-## Limitations
-No real market data, real historical backtesting, live exchange connection, bank account, or financial advice. Demo tick value, price increment, cutoff, fills and fees are assumptions. Synthetic scenario results are not evidence of expected profitability.
-
-## Team execution
-For **3 members** use `TEAM_ISSUES_AND_PROMPTS_3P.md`; for **2 members** use `TEAM_ISSUES_AND_PROMPTS_2P.md`. Both target **five hours total**, including integration and demo rehearsal. Contract is already decided—no 30-minute schema meeting required, just a five-minute review.
+Built in one day at Money Talks 2 by a two-person team: frontend by [@antunishdPursuit](https://github.com/antunishdPursuit), backend and engine by [@Shawn-Bi](https://github.com/Shawn-Bi). Built with AI coding assistance.
