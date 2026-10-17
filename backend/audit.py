@@ -1,4 +1,4 @@
-"""Local append-only audit log (JSONL). Always on; PRISM is not integrated."""
+"""Local append-only audit log (JSONL). Always on, whether or not PRISM tracing is configured."""
 from __future__ import annotations
 
 import json

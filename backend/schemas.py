@@ -129,6 +129,8 @@ class GenerateRequest(_Strict):
     template_id: str = "ng-long-pullback-v1"
     overrides: dict = Field(default_factory=dict)
     free_text: str = Field(default="", max_length=4000)
+    # additive: groups every draft of one conversation into a single PRISM session
+    session_id: str | None = Field(default=None, min_length=1, max_length=128, pattern=r"^[A-Za-z0-9._:-]+$")
 
 
 class StrategyRef(_Strict):

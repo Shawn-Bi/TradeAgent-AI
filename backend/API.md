@@ -4,7 +4,7 @@ Base URL `http://localhost:8000` (`VITE_API_BASE_URL`). All JSON. Routes and fie
 ones from `docs/PRD.md` §8. Fields marked *additive* are extras the backend also returns; the frozen sample
 fields are always present, so a typed mock written from PRD §8 keeps working.
 
-**Simulation only:** synthetic MOCK candles, no broker, no real orders, `prism_status` is always `LOCAL_ONLY`.
+**Simulation only:** synthetic MOCK candles, no broker, no real orders. `prism_status` is `CONNECTED` only when PRISM accepted the trace of the Nicrron call that wrote the simulated version (see *PRISM tracing* below); otherwise `LOCAL_ONLY`.
 
 ## Demo flow (exact call order)
 
@@ -224,6 +224,22 @@ decision against the paper ledger (`fills`). For example, a BUY fill after `LOCK
 ```
 Show `compliant_decisions / eligible_decisions`. `execution_conformance` is `null` when there are no eligible
 decisions: render "N/A".
+
+## PRISM tracing
+
+Configured with `PRISMTRACE_HOST`, `PRISMTRACE_PROJECT_ID` and `PRISMTRACE_API_KEY` in `backend/.env`. Each Nicrron call
+in `/api/strategies/generate` (successful or failed) is sent as one trace to `POST {host}/api/traces` with
+`agent_id: "tradeagent-strategy-translator"`, the prompt and trader text as `input_messages`, Nicrron's raw JSON (or
+`[NICRRON ERROR <code>] ...`) as `output_message`, and metadata (`prompt_version`, `strategy_version`, `generator`,
+`interpreted_fields`, clarification count, `approvable`). The preset path makes no model call and sends nothing.
+Tracing never blocks: a PRISM error is reported and the request still succeeds.
+
+- `generate` request, *additive*: optional `session_id` (`[A-Za-z0-9._:-]`, max 128). Send the same value for every draft
+  of one conversation; without it each call gets its own `draft-…` session.
+- `generate` response, *additive*: `"prism": {"status": "SENT" | "FAILED" | "NOT_CONFIGURED" | "NOT_REQUESTED",
+  "trace_id", "error", "session_id", "agent_id"}`. Reuse the returned `session_id` for follow-up drafts.
+- simulation state, *additive*: `prism_trace_id`, `prism_session_id`, `prism_scope: "STRATEGY_GENERATION"`. Engine
+  decisions stay in the local audit; they are deterministic, not agent output.
 
 ## Aliases
 `POST /api/strategy/generate` and `POST /api/strategy/approve` are aliases of the canonical routes
