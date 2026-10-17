@@ -13,3 +13,6 @@ __pycache__/
 
 # Local runtime output (audit logs may contain customer free text)
 data/
+
+# Eval harness output (scripts/eval_run.py); commit a chosen summary on purpose if needed
+tests/eval/results/
