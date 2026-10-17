@@ -1,0 +1,163 @@
+{
+  "run": {
+    "prompt_version": "v2",
+    "tag": "mini2-retry",
+    "started_at": "2026-10-17T20:15:48.918609+00:00",
+    "finished_at": "2026-10-17T20:16:11.483616+00:00",
+    "inputs": "inputs.jsonl",
+    "base_url": "spawned",
+    "agent_id": "tradeagent-strategy-translator"
+  },
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "by_category": {
+      "unit_trap": {
+        "pass": 1,
+        "fail": 0,
+        "error": 0
+      },
+      "unsupported": {
+        "pass": 3,
+        "fail": 0,
+        "error": 0
+      }
+    },
+    "failure_reasons": {}
+  },
+  "results": [
+    {
+      "id": "unit-02",
+      "category": "unit_trap",
+      "text": "Put the stop 40 pips under the recent low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v2",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What does '40 pips' mean in ticks?",
+        "Not supported in this MVP: \"Put the stop 40 pips under the recent low.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Put the stop 40 pips under the recent low."
+      ],
+      "warnings": [],
+      "kb_sources": [
+        "NG_SIM_UNITS.md",
+        "STRATEGYSPEC_FIELD_GUIDE.md",
+        "CUSTOMER_CONFIRMED_RULES.md"
+      ],
+      "kb_status": "USED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": true,
+      "latency_ms": 330,
+      "nicrron_error": null,
+      "session_id": "eval-v2-mini2-retry-unit-02",
+      "prism_trace_id": "64212f45-8f75-4077-98c2-3a1068373579",
+      "prism_status": "SENT",
+      "wall_ms": 5752
+    },
+    {
+      "id": "unsup-02",
+      "category": "unsupported",
+      "text": "Trail the stop on the runner once the first target hits.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v2",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Trail the stop on the runner once the first target hits.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Trail the stop on the runner once the first target hits."
+      ],
+      "warnings": [],
+      "kb_sources": [
+        "UNSUPPORTED_REQUESTS.md",
+        "CUSTOMER_CONFIRMED_RULES.md",
+        "NG_SIM_UNITS.md"
+      ],
+      "kb_status": "USED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": true,
+      "latency_ms": 71,
+      "nicrron_error": null,
+      "session_id": "eval-v2-mini2-retry-unsup-02",
+      "prism_trace_id": "5677a6d3-77e8-4290-b84d-f70e4190e80b",
+      "prism_status": "SENT",
+      "wall_ms": 5478
+    },
+    {
+      "id": "unsup-06",
+      "category": "unsupported",
+      "text": "Move my stop to breakeven after 1R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v2",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Move my stop to breakeven after 1R.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Move my stop to breakeven after 1R."
+      ],
+      "warnings": [],
+      "kb_sources": [
+        "UNSUPPORTED_REQUESTS.md",
+        "CUSTOMER_CONFIRMED_RULES.md",
+        "STRATEGYSPEC_FIELD_GUIDE.md"
+      ],
+      "kb_status": "USED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": true,
+      "latency_ms": 94,
+      "nicrron_error": null,
+      "session_id": "eval-v2-mini2-retry-unsup-06",
+      "prism_trace_id": "1758dcf7-cd7f-4c0b-a792-d9c50a1a15f6",
+      "prism_status": "SENT",
+      "wall_ms": 5882
+    },
+    {
+      "id": "unsup-07",
+      "category": "unsupported",
+      "text": "Only trade between 9:30 and 11:00.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v2",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What do you mean by 'only trade between 9:30 and 11:00'? Is this a time-of-day filter or a session cutoff adjustment?",
+        "Not supported in this MVP: \"Only trade between 9:30 and 11:00.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Only trade between 9:30 and 11:00."
+      ],
+      "warnings": [],
+      "kb_sources": [
+        "STRATEGYSPEC_FIELD_GUIDE.md",
+        "CUSTOMER_CONFIRMED_RULES.md",
+        "UNSUPPORTED_REQUESTS.md"
+      ],
+      "kb_status": "USED",
+      "model_used": "openai/gpt-4o-mini",
+      "cached": true,
+      "latency_ms": 65,
+      "nicrron_error": null,
+      "session_id": "eval-v2-mini2-retry-unsup-07",
+      "prism_trace_id": "22873452-195b-48e7-b482-bf3a78614fda",
+      "prism_status": "SENT",
+      "wall_ms": 5210
+    }
+  ]
+}

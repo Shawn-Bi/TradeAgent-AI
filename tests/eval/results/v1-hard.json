@@ -1,0 +1,1241 @@
+{
+  "run": {
+    "prompt_version": "v1",
+    "tag": "hard",
+    "started_at": "2026-10-17T19:37:10.086300+00:00",
+    "finished_at": "2026-10-17T19:41:23.614541+00:00",
+    "inputs": "inputs_hard.draft.jsonl",
+    "base_url": "spawned",
+    "agent_id": "tradeagent-strategy-translator"
+  },
+  "summary": {
+    "total": 38,
+    "passed": 37,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.974,
+    "by_category": {
+      "cutoff_extension": {
+        "pass": 4,
+        "fail": 1,
+        "error": 0
+      },
+      "over_ask": {
+        "pass": 7,
+        "fail": 0,
+        "error": 0
+      },
+      "compound_unit": {
+        "pass": 9,
+        "fail": 0,
+        "error": 0
+      },
+      "range": {
+        "pass": 4,
+        "fail": 0,
+        "error": 0
+      },
+      "implied_time": {
+        "pass": 4,
+        "fail": 0,
+        "error": 0
+      },
+      "fraction": {
+        "pass": 3,
+        "fail": 0,
+        "error": 0
+      },
+      "unsupported_limit": {
+        "pass": 4,
+        "fail": 0,
+        "error": 0
+      },
+      "invented": {
+        "pass": 2,
+        "fail": 0,
+        "error": 0
+      }
+    },
+    "failure_reasons": {
+      "missed:session.cutoff_local": 1,
+      "warning_missing:RISK_LOOSENED": 1
+    }
+  },
+  "results": [
+    {
+      "id": "cut-01",
+      "category": "cutoff_extension",
+      "text": "Keep trading until 4:30 pm.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "session.cutoff_local"
+      ],
+      "values": {
+        "session.cutoff_local": "16:30"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: session.cutoff_local = \"16:30\" from \"Keep trading until 4:30 pm\". This is read as 16:30 America/New_York (the spec's fixed session timezone). At this cutoff the demo stops trading and any remaining contracts are closed.",
+        "RISK_LOOSENED: session cutoff 16:00 -> 16:30 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 7129,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-cut-01",
+      "prism_trace_id": "4f10ab8f-a9f4-4b58-9be0-81b401830a1d",
+      "prism_status": "SENT",
+      "wall_ms": 9143
+    },
+    {
+      "id": "cut-02",
+      "category": "cutoff_extension",
+      "text": "Let positions run until 16:45 before flattening.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "session.cutoff_local"
+      ],
+      "values": {
+        "session.cutoff_local": "16:45"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: session.cutoff_local = \"16:45\" from \"Let positions run until 16:45 before flattening\". The time is read as America/New_York, which is the fixed timezone for this field. No timezone was stated.",
+        "RISK_LOOSENED: session cutoff 16:00 -> 16:45 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5789,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-cut-02",
+      "prism_trace_id": "986083b2-aeff-4fc0-bb0c-d899d0d4c74e",
+      "prism_status": "SENT",
+      "wall_ms": 8295
+    },
+    {
+      "id": "cut-03",
+      "category": "cutoff_extension",
+      "text": "Flat by 5 instead of 4.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "session.cutoff_local"
+      ],
+      "values": {
+        "session.cutoff_local": "17:00"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: session.cutoff_local = \"17:00\" from \"Flat by 5 instead of 4\". The current cutoff of 16:00 is 4 PM, so \"5\" was read as 5 PM America/New_York. Please confirm this before approving.",
+        "RISK_LOOSENED: session cutoff 16:00 -> 17:00 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 6751,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-cut-03",
+      "prism_trace_id": "0eb10394-9a76-438b-aab6-dfd708b0d114",
+      "prism_status": "SENT",
+      "wall_ms": 8463
+    },
+    {
+      "id": "cut-04",
+      "category": "cutoff_extension",
+      "text": "Give me an extra 30 minutes past the normal cutoff.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "session.cutoff_local"
+      ],
+      "values": {
+        "session.cutoff_local": "16:30"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: session.cutoff_local set to \"16:30\" from \"Give me an extra 30 minutes past the normal cutoff\", applied to the BASE_SPEC cutoff of 16:00 America/New_York.",
+        "RISK_LOOSENED: session cutoff 16:00 -> 16:30 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5612,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-cut-04",
+      "prism_trace_id": "dfe43259-c81d-4dd6-aed3-39fd03da97f1",
+      "prism_status": "SENT",
+      "wall_ms": 7343
+    },
+    {
+      "id": "cut-05",
+      "category": "cutoff_extension",
+      "text": "I'm out at 4:15.",
+      "outcome": "fail",
+      "reasons": [
+        "missed:session.cutoff_local",
+        "warning_missing:RISK_LOOSENED"
+      ],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You wrote \"I'm out at 4:15.\" Does that mean you want the session cutoff (all positions flat, no new entries) set to 16:15 (4:15 PM) America/New_York time? Or did you mean 04:15 (4:15 AM), or something other than the session cutoff? The current default cutoff is 16:00."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: \"I'm out at 4:15\" probably refers to session.cutoff_local, but it does not say AM or PM and may not mean the cutoff at all. The field was left unchanged until you confirm."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5627,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-cut-05",
+      "prism_trace_id": "270fe616-2096-465d-abba-2d5253794832",
+      "prism_status": "SENT",
+      "wall_ms": 7520
+    },
+    {
+      "id": "ask-01",
+      "category": "over_ask",
+      "text": "Entry candle has to close green and above the 20 SMA; tolerance 2 ticks.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "entry.ma_period",
+        "entry.tolerance_ticks"
+      ],
+      "values": {
+        "entry.ma_period": 20,
+        "entry.tolerance_ticks": 2
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: entry.ma_period = 20 from 'above the 20 SMA' (the entry candle's SMA)",
+        "Nicrron: entry.tolerance_ticks = 2 from 'tolerance 2 ticks'",
+        "Nicrron: 'close green and above the 20 SMA' already matches the fixed entry confirmation (close > open AND close > SMA), so no override is needed"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4033,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-01",
+      "prism_trace_id": "5696b503-797b-4784-ba64-ba619f81b54e",
+      "prism_status": "SENT",
+      "wall_ms": 5780
+    },
+    {
+      "id": "ask-02",
+      "category": "over_ask",
+      "text": "Keep the original stop on the second contract, no breakeven. Target 1.8R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r"
+      ],
+      "values": {
+        "exit.target_r": 1.8
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: exit.target_r = 1.8 from 'Target 1.8R'.",
+        "Nicrron: 'Keep the original stop on the second contract, no breakeven' matches the fixed behavior, where remaining contracts exit only at the original stop or the session cutoff, so no override is needed."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4119,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-02",
+      "prism_trace_id": "a878eb79-7c81-4e98-aa51-cb5e95f80549",
+      "prism_status": "SENT",
+      "wall_ms": 5871
+    },
+    {
+      "id": "ask-03",
+      "category": "over_ask",
+      "text": "SMA only, I don't use EMAs. Trend SMA period 30.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "trend.period"
+      ],
+      "values": {
+        "trend.period": 30
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: trend.period = 30 from \"Trend SMA period 30\".",
+        "Nicrron: \"SMA only, I don't use EMAs\" needs no override because ma_type is always SMA and cannot be changed."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3708,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-03",
+      "prism_trace_id": "3a5d48d7-16af-41cb-ba98-727234c8a9f0",
+      "prism_status": "SENT",
+      "wall_ms": 5521
+    },
+    {
+      "id": "ask-04",
+      "category": "over_ask",
+      "text": "Stop 5 ticks ($50) below the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 5
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: stop.buffer_ticks = 5 from 'Stop 5 ticks ($50) below the swing low'; the $50 matches 5 ticks at the demo tick value of $10."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 2575,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-04",
+      "prism_trace_id": "7cfc49d2-ec12-44a8-9af6-2628ddcb087b",
+      "prism_status": "SENT",
+      "wall_ms": 4303
+    },
+    {
+      "id": "ask-05",
+      "category": "over_ask",
+      "text": "Stop 6t under the low, target 2:1.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r",
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "exit.target_r": 2,
+        "stop.buffer_ticks": 6
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: stop.buffer_ticks = 6 from 'Stop 6t under the low' ('6t' read as 6 ticks below the swing low; lookback not stated, so default applies).",
+        "Nicrron: exit.target_r = 2 from 'target 2:1' (2:1 reward-to-risk = 2R profit target)."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4412,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-05",
+      "prism_trace_id": "4291945f-ac56-4bff-afa4-9a21a33c7e2a",
+      "prism_status": "SENT",
+      "wall_ms": 6099
+    },
+    {
+      "id": "ask-06",
+      "category": "over_ask",
+      "text": "Stop 4 ticks (0.004) under the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 4
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: stop.buffer_ticks = 4 from 'Stop 4 ticks (0.004) under the swing low'. The parenthetical 0.004 matches 4 ticks at a tick size of 0.001, so there is no unit conflict. The value equals the default and is included because it was stated explicitly."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3224,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-06",
+      "prism_trace_id": "80858cb7-ac1c-4b34-83a0-07ce8621a29e",
+      "prism_status": "SENT",
+      "wall_ms": 5221
+    },
+    {
+      "id": "ask-07",
+      "category": "over_ask",
+      "text": "Long only, flat by 15:45, max 2 trades.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "risk.max_completed_trades_per_session",
+        "session.cutoff_local"
+      ],
+      "values": {
+        "risk.max_completed_trades_per_session": 2,
+        "session.cutoff_local": "15:45"
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: session.cutoff_local = \"15:45\" from \"flat by 15:45\" (America/New_York).",
+        "Nicrron: risk.max_completed_trades_per_session = 2 from \"max 2 trades\".",
+        "Nicrron: \"Long only\" already matches the fixed LONG_ONLY direction, so no override is needed."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4450,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-ask-07",
+      "prism_trace_id": "80ab1562-ab48-4f1e-8a68-7027b554e145",
+      "prism_status": "SENT",
+      "wall_ms": 6190
+    },
+    {
+      "id": "mix-01",
+      "category": "compound_unit",
+      "text": "Stop 6 ticks under the swing low and let the pullback dip 2 points under the SMA.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "stop.buffer_ticks": 6
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You said the pullback may dip \"2 points\" under the SMA. Entry tolerance must be set in ticks (1 tick = 0.001 price units). How many ticks should the pullback low be allowed to sit from the entry SMA?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: stop.buffer_ticks = 6 from \"Stop 6 ticks under the swing low\"; the swing-low lookback was not stated, so the default applies.",
+        "Nicrron: entry.tolerance_ticks was left unset because \"2 points\" is not in ticks; the default of 3 ticks applies until you clarify."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5075,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-01",
+      "prism_trace_id": "88118186-2d55-4b5d-a845-4dd330ce6dbf",
+      "prism_status": "SENT",
+      "wall_ms": 7030
+    },
+    {
+      "id": "mix-02",
+      "category": "compound_unit",
+      "text": "Tolerance 3 ticks, stop 1.5 points.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "entry.tolerance_ticks"
+      ],
+      "values": {
+        "entry.tolerance_ticks": 3
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You wrote 'stop 1.5 points'. Stops must be in ticks (1 tick = 0.001 price units), and I don't convert other units. How many ticks did you mean?",
+        "The stop is always the swing low (lowest low of recent completed 5-minute bars) minus a buffer in ticks. Is your '1.5 points' the buffer below that swing low (stop.buffer_ticks), or did you mean a fixed stop distance from entry? A fixed distance isn't supported."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: entry.tolerance_ticks = 3 from 'Tolerance 3 ticks' (same as the default, but explicitly stated).",
+        "Nicrron: 'stop 1.5 points' left out because it uses points and could mean either the buffer or a fixed distance; awaiting clarification."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4627,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-02",
+      "prism_trace_id": "09ae8896-66a4-46f5-9555-38f964a4fc7a",
+      "prism_status": "SENT",
+      "wall_ms": 6362
+    },
+    {
+      "id": "mix-03",
+      "category": "compound_unit",
+      "text": "Stop 8 ticks, which is about 2 cents.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You wrote 'Stop 8 ticks, which is about 2 cents.' On NG_SIM 1 tick = 0.001 price units, so 8 ticks = 0.008, not 0.02. Which value do you want: 8 ticks, or a stop based on 2 cents (which would need restating in ticks)?",
+        "Does 'Stop 8 ticks' mean the buffer below the swing low (stop = lowest low of the lookback bars minus 8 ticks), or a fixed stop distance of 8 ticks from entry? This strategy only supports the swing-low-minus-buffer stop."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: 'Stop 8 ticks' was not applied because it conflicts with 'about 2 cents' (8 ticks = 0.008, not 0.02), and cent units are not converted. stop.buffer_ticks stays at its default until you clarify."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5485,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-03",
+      "prism_trace_id": "ace8f03d-4c17-438e-acfb-af15bbb12e33",
+      "prism_status": "SENT",
+      "wall_ms": 7272
+    },
+    {
+      "id": "mix-04",
+      "category": "compound_unit",
+      "text": "Stop 10 ticks or $50, whichever is smaller.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "In this strategy the stop is always placed at the swing low (lowest low of the last N completed entry bars) minus a buffer in ticks. Does your '10 ticks' mean the buffer below that swing low (stop.buffer_ticks = 10), or a fixed stop distance of 10 ticks from your entry price? A fixed distance from entry is not supported.",
+        "Your '$50' limit is in dollars, but stops are set in ticks only. Do you want to state that limit in ticks instead? Note that a rule choosing the smaller of two stops cannot be expressed, so only one tick value can be used.",
+        "Not supported in this MVP: \"Stop 10 ticks or $50, whichever is smaller\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Stop 10 ticks or $50, whichever is smaller"
+      ],
+      "warnings": [
+        "Nicrron: No override applied. The stop rule mixes ticks with a dollar amount and asks for 'whichever is smaller', which the swing-low-plus-buffer stop cannot express. The default stop settings remain until you clarify."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 7440,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-04",
+      "prism_trace_id": "16132a9b-14d7-4ab7-87a5-9be8f8b89db5",
+      "prism_status": "SENT",
+      "wall_ms": 9129
+    },
+    {
+      "id": "mix-05",
+      "category": "compound_unit",
+      "text": "Target 15 ticks or 1.5R, whichever comes first.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The profit target can only be set as a multiple of initial risk (exit.target_r). A fixed 15-tick target, or a 'whichever comes first' combination, is not supported. Do you want the target set to 1.5R only, with no 15-tick alternative?",
+        "Not supported in this MVP: \"Target 15 ticks or 1.5R, whichever comes first.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Target 15 ticks or 1.5R, whichever comes first."
+      ],
+      "warnings": [
+        "Nicrron: exit.target_r was not set to 1.5 because the trader made 1.5R part of a combined 'whichever comes first' rule with a fixed 15-tick target. Using 1.5R alone would approximate the rule rather than express it."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4631,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-05",
+      "prism_trace_id": "a7060eb4-033b-4988-8a01-9b7edede6266",
+      "prism_status": "SENT",
+      "wall_ms": 6549
+    },
+    {
+      "id": "mix-06",
+      "category": "compound_unit",
+      "text": "Risk:reward 1:2.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r"
+      ],
+      "values": {
+        "exit.target_r": 2
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: exit.target_r = 2 from 'Risk:reward 1:2' (reward is 2x the initial risk)."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3179,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-06",
+      "prism_trace_id": "0e3e67a9-cd36-47c4-a6a6-48c4e765712f",
+      "prism_status": "SENT",
+      "wall_ms": 4916
+    },
+    {
+      "id": "mix-07",
+      "category": "compound_unit",
+      "text": "Take profit at $150 a contract.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The profit target can only be set as a multiple of initial risk (R). R is the distance from entry to the stop and changes on every trade, so a fixed $150 per contract cannot be expressed. What R multiple do you want for exit.target_r (greater than 0 and at most 10, default 1.2)?",
+        "Which contracts should the target apply to? By default the target closes 1 of 2 contracts, and the remaining contract exits only at the original stop or the session cutoff.",
+        "Not supported in this MVP: \"Take profit at $150 a contract.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Take profit at $150 a contract."
+      ],
+      "warnings": [
+        "Nicrron: The dollar-based target ('$150 a contract') was not converted to ticks or R. The spec only supports a target in R multiples, so exit.target_r was left at its default until you clarify."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5975,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-07",
+      "prism_trace_id": "9fa202bb-9bc0-4560-b6db-36ac97e981ea",
+      "prism_status": "SENT",
+      "wall_ms": 7792
+    },
+    {
+      "id": "mix-08",
+      "category": "compound_unit",
+      "text": "Stop .0035 under the low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You wrote the stop as '.0035 under the low'. That is in price units, but the stop buffer must be a whole number of ticks (1 tick = 0.001). .0035 works out to 3.5 ticks, which is not allowed. How many whole ticks below the swing low should the stop go? For example, 3 or 4 ticks.",
+        "By 'the low', do you mean the swing low (the lowest low of the last N completed 5-minute bars)? If so, how many bars should it look back? If you don't say, the default is 5 bars."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: No overrides were applied. 'Stop .0035 under the low' is in price units rather than ticks and equals a fractional 3.5 ticks, so stop.buffer_ticks was left at its default until you confirm a whole number of ticks."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5756,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-08",
+      "prism_trace_id": "df28712a-af19-4b8e-b4cf-aec184d0abcf",
+      "prism_status": "SENT",
+      "wall_ms": 7521
+    },
+    {
+      "id": "mix-09",
+      "category": "compound_unit",
+      "text": "Stop 0.04 below the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You wrote a stop '0.04 below the swing low'. Stop buffers are set in ticks (1 tick = 0.001 price units), and I cannot convert other units for you. How many ticks below the swing low should the stop be? (Valid range: 0-100 ticks. The default is 4 ticks.)"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: 'Stop 0.04 below the swing low': stop.buffer_ticks was left unchanged because the value is in price units, not ticks. The swing-low stop type is already the default."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3609,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-mix-09",
+      "prism_trace_id": "85ae55c7-9226-45c4-9c64-b43e2275834c",
+      "prism_status": "SENT",
+      "wall_ms": 5588
+    },
+    {
+      "id": "rng-01",
+      "category": "range",
+      "text": "Stop 4 to 6 ticks below the swing low.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You said the stop should be '4 to 6 ticks below the swing low', but stop.buffer_ticks takes one fixed whole number of ticks (0..100). Which value do you want: 4, 5 or 6?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3045,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-rng-01",
+      "prism_trace_id": "00f37367-3499-4870-8064-61e8e310704a",
+      "prism_status": "SENT",
+      "wall_ms": 4785
+    },
+    {
+      "id": "rng-02",
+      "category": "range",
+      "text": "Target somewhere between 1.5 and 2R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You said the target should be 'somewhere between 1.5 and 2R', but exit.target_r takes one fixed value. Which exact R multiple do you want (for example 1.5, 1.75 or 2.0)?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: exit.target_r was left at its default because 'somewhere between 1.5 and 2R' is a range, not a single value."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3992,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-rng-02",
+      "prism_trace_id": "18b6e1bb-5492-48bb-9f1b-728ac05d722a",
+      "prism_status": "SENT",
+      "wall_ms": 6624
+    },
+    {
+      "id": "rng-03",
+      "category": "range",
+      "text": "Trade 2-3 contracts depending on the setup.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The strategy uses one fixed position size for every trade (quantity_contracts, 2 to 10). Should it trade 2 contracts or 3 on every trade?",
+        "Not supported in this MVP: \"Trade 2-3 contracts depending on the setup (varying position size by setup is not supported; only a single fixed quantity can be set)\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Trade 2-3 contracts depending on the setup (varying position size by setup is not supported; only a single fixed quantity can be set)"
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4104,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-rng-03",
+      "prism_trace_id": "8c0b5c68-d869-49dc-a2b1-83be28f698e9",
+      "prism_status": "SENT",
+      "wall_ms": 6111
+    },
+    {
+      "id": "rng-04",
+      "category": "range",
+      "text": "Swing low over the last 5 or 6 bars.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You said the swing low should use 'the last 5 or 6 bars'. Should stop.lookback_5m_bars be 5 or 6 completed entry bars?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: 'Swing low over the last 5 or 6 bars' gives two values for stop.lookback_5m_bars, so it was not set."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 2377,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-rng-04",
+      "prism_trace_id": "a46bf3f2-7c38-4b04-97c8-205167eb48c3",
+      "prism_status": "SENT",
+      "wall_ms": 4141
+    },
+    {
+      "id": "time-01",
+      "category": "implied_time",
+      "text": "No new entries after 3 pm, but let open trades run to the close.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The strategy has only one session cutoff (session.cutoff_local, currently the default \"16:00\" America/New_York). At that time new entries stop and all positions are closed. A separate earlier no-new-entries time is not supported. Do you want to keep the 16:00 cutoff, set the cutoff to 15:00 (which would also close open trades at 3 pm), or use a different time? By 'the close', do you mean 16:00 America/New_York?",
+        "Not supported in this MVP: \"No new entries after 3 pm, but let open trades run to the close.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "No new entries after 3 pm, but let open trades run to the close."
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 6488,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-time-01",
+      "prism_trace_id": "9274c55f-b94a-4ef0-b918-28c233eccf20",
+      "prism_status": "SENT",
+      "wall_ms": 8274
+    },
+    {
+      "id": "time-02",
+      "category": "implied_time",
+      "text": "No trades after lunch.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What exact time do you mean by 'lunch' (HH:MM, America/New_York)? For example 12:00 or 13:00.",
+        "Should all positions be flat by that time (session.cutoff_local, which also closes any open contracts), or do you only want to stop opening new trades then while letting open positions run to their stop, target or the 16:00 cutoff? The second option has no editable setting."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: 'No trades after lunch' was not applied: the lunch time is not given, and it is unclear whether you want to be flat by then or only stop new entries."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5359,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-time-02",
+      "prism_trace_id": "68214e29-a34e-4068-99ba-6677235649da",
+      "prism_status": "SENT",
+      "wall_ms": 7416
+    },
+    {
+      "id": "time-03",
+      "category": "implied_time",
+      "text": "Flat by 2:30 Chicago time.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "You asked to be flat by 2:30 Chicago time, but the cutoff is set in America/New_York time and you didn't say AM or PM. Do you mean 2:30 PM Central, which would be a cutoff of \"15:30\" New York time? Please confirm the New York time you want."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: 'Flat by 2:30 Chicago time' maps to session.cutoff_local. It was left out because it needs conversion from Chicago to New York time and AM/PM is unclear."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 7125,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-time-03",
+      "prism_trace_id": "04d920e8-5123-422d-9992-e6d0d2431924",
+      "prism_status": "SENT",
+      "wall_ms": 9038
+    },
+    {
+      "id": "time-04",
+      "category": "implied_time",
+      "text": "Only trade the first hour after the open.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "What exact time (HH:MM, America/New_York) do you mean by 'the open' for NG_SIM?",
+        "The only time setting available is session.cutoff_local, which forces all positions flat by that time; there is no session start time and no separate 'stop new entries' time. Should session.cutoff_local be set to one hour after the open (please give the exact HH:MM), so every position is closed by then? Or do you only want to stop taking new entries after the first hour, while letting open trades run to the normal cutoff?",
+        "Not supported in this MVP: \"Only trade the first hour after the open\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Only trade the first hour after the open"
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 6438,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-time-04",
+      "prism_trace_id": "5c9d68f8-97ee-45e1-8684-84e9c87b7fb3",
+      "prism_status": "SENT",
+      "wall_ms": 8202
+    },
+    {
+      "id": "frac-h1",
+      "category": "fraction",
+      "text": "Take half off at the first target. Make it 3 contracts.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 3
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You asked to take half off at the first target with 3 contracts, but half of 3 is 1.5 and only whole contracts can be closed. Should the first target close 1 contract (leaving 2) or 2 contracts (leaving 1)?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: quantity_contracts=3 from 'Make it 3 contracts'.",
+        "Nicrron: exit.first_target_close_contracts left unset because 'half off' of 3 contracts is not a whole number; awaiting clarification.",
+        "RISK_LOOSENED: contracts per position 2 -> 3 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3248,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-frac-h1",
+      "prism_trace_id": "84b21896-0377-414a-93d5-55c6ee000b69",
+      "prism_status": "SENT",
+      "wall_ms": 4964
+    },
+    {
+      "id": "frac-h2",
+      "category": "fraction",
+      "text": "Peel off half at 1.5R on a 5-lot.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r",
+        "quantity_contracts"
+      ],
+      "values": {
+        "exit.target_r": 1.5,
+        "quantity_contracts": 5
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You said to peel off half of a 5-lot, but half of 5 is 2.5 and only whole contracts are allowed. Should the first target close 2 contracts or 3? Until you confirm, first_target_close_contracts is left unset and the server default of 1 would apply."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: quantity_contracts = 5 from 'on a 5-lot'.",
+        "Nicrron: exit.target_r = 1.5 from 'at 1.5R'.",
+        "RISK_LOOSENED: contracts per position 2 -> 5 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4575,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-frac-h2",
+      "prism_trace_id": "750880db-f33d-4b22-9348-489fb5484235",
+      "prism_status": "SENT",
+      "wall_ms": 6349
+    },
+    {
+      "id": "frac-h3",
+      "category": "fraction",
+      "text": "Trade 6, scale a third at 1R and another third at 2R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 6
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "The strategy supports only one partial profit target, with the remaining contracts exiting at the original stop or the session cutoff. Your plan has two scale-out targets (a third at 1R and a third at 2R), so it can't be built as written. Do you want a single partial exit instead? For example, close 2 contracts at 1.0R and hold the other 4 until the stop or cutoff. Please confirm the target multiple and how many contracts to close at it.",
+        "Please confirm that 'Trade 6' means 6 contracts per trade, not 6 trades per session.",
+        "Not supported in this MVP: \"scale a third at 1R and another third at 2R\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "scale a third at 1R and another third at 2R"
+      ],
+      "warnings": [
+        "Nicrron: quantity_contracts = 6 from 'Trade 6', read as 6 contracts because the trader scales out in thirds. Pending confirmation.",
+        "Nicrron: exit.target_r and exit.first_target_close_contracts were left at their defaults (1.2R and 1 contract) because the requested two-target scale-out can't be expressed and was not approximated.",
+        "RISK_LOOSENED: contracts per position 2 -> 6 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 8260,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-frac-h3",
+      "prism_trace_id": "613830c7-b4f9-4897-b5fc-cb9d441389b4",
+      "prism_status": "SENT",
+      "wall_ms": 10715
+    },
+    {
+      "id": "lim-01",
+      "category": "unsupported_limit",
+      "text": "Stop trading for the day after 2 losing trades, consecutive or not.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Stop trading for the day after 2 losing trades, consecutive or not.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Stop trading for the day after 2 losing trades, consecutive or not."
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3672,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-lim-01",
+      "prism_trace_id": "041a3a97-30e0-4a06-9aca-b7fe6fd4c907",
+      "prism_status": "SENT",
+      "wall_ms": 5334
+    },
+    {
+      "id": "lim-02",
+      "category": "unsupported_limit",
+      "text": "Max daily loss $500.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "Not supported in this MVP: \"Max daily loss $500.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Max daily loss $500."
+      ],
+      "warnings": [
+        "Nicrron: No overrides applied. StrategySpec v1 has no dollar-based daily loss limit, and this rule was not approximated with risk.consecutive_loss_lock or risk.max_completed_trades_per_session."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4135,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-lim-02",
+      "prism_trace_id": "9fa1d8e5-6857-430d-8360-98647e3c18de",
+      "prism_status": "SENT",
+      "wall_ms": 5871
+    },
+    {
+      "id": "lim-03",
+      "category": "unsupported_limit",
+      "text": "Stop for the day after my first winner.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The spec cannot stop trading only after a winning trade. It can only cap total completed trades per session (risk.max_completed_trades_per_session), counting wins and losses alike. Do you want to set a total trade cap, and if so, to what number? Note that a cap of 1 would also stop trading after a first losing trade.",
+        "Not supported in this MVP: \"Stop for the day after my first winner.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Stop for the day after my first winner."
+      ],
+      "warnings": [
+        "Nicrron: No overrides applied. 'Stop for the day after my first winner' depends on whether a trade wins, and no editable field supports that. The trade cap counts all completed trades and the loss lock counts only consecutive losses, so neither is used as a substitute."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 5339,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-lim-03",
+      "prism_trace_id": "e2faa77e-b7a7-4606-be94-0bdc966bc9eb",
+      "prism_status": "SENT",
+      "wall_ms": 7174
+    },
+    {
+      "id": "lim-04",
+      "category": "unsupported_limit",
+      "text": "Swing low is the lowest low of today's session.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [],
+      "values": {},
+      "approvable": false,
+      "clarification_questions": [
+        "The swing low can only be the lowest low of a fixed number of completed entry-timeframe bars (stop.lookback_5m_bars, 1 to 50). A since-session-open lookback isn't available. Do you want a specific number of bars instead? If so, how many?",
+        "Not supported in this MVP: \"Swing low is the lowest low of today's session.\". It was NOT applied; remove it from your rules or confirm you accept the strategy without it."
+      ],
+      "unsupported_requirements": [
+        "Swing low is the lowest low of today's session."
+      ],
+      "warnings": [],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 4321,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-lim-04",
+      "prism_trace_id": "74bd8fe8-e14b-4e8a-bcc0-eb8e58b8d19f",
+      "prism_status": "SENT",
+      "wall_ms": 6111
+    },
+    {
+      "id": "inv-01",
+      "category": "invented",
+      "text": "Use a tighter tolerance and the 50 SMA for entries.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "entry.ma_period"
+      ],
+      "values": {
+        "entry.ma_period": 50
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You asked for a 'tighter tolerance' but gave no value. How many ticks should entry.tolerance_ticks be (whole number 0 to 2 to be tighter than the default 3; 1 tick = 0.001)?"
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: entry.ma_period = 50 from 'the 50 SMA for entries'.",
+        "Nicrron: entry.tolerance_ticks left at default because 'tighter tolerance' gives no number."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3349,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-inv-01",
+      "prism_trace_id": "36e0b821-db39-4cc1-8a1a-7580cbebe31f",
+      "prism_status": "SENT",
+      "wall_ms": 5328
+    },
+    {
+      "id": "inv-02",
+      "category": "invented",
+      "text": "Make the target bigger and use 4 contracts.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "quantity_contracts"
+      ],
+      "values": {
+        "quantity_contracts": 4
+      },
+      "approvable": false,
+      "clarification_questions": [
+        "You asked to make the target bigger but did not give a value. What profit target do you want, as a multiple of initial risk (R)? The current default is 1.2R, and the allowed range is above 0 up to 10."
+      ],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: quantity_contracts=4 from 'use 4 contracts'.",
+        "RISK_LOOSENED: contracts per position 2 -> 4 relaxes the customer-confirmed rule; review before approving."
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "anthropic/claude-opus-5-5",
+      "cached": false,
+      "latency_ms": 3208,
+      "nicrron_error": null,
+      "session_id": "eval-v1-hard-inv-02",
+      "prism_trace_id": "f3dc3426-1769-435e-98a0-3c797ada5ff3",
+      "prism_status": "SENT",
+      "wall_ms": 4979
+    }
+  ]
+}
