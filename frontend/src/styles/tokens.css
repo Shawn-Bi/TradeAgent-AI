@@ -4,8 +4,8 @@
   color-scheme: light dark;
 
   /* Fonts */
-  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Type scale */
   --type-display-size: 40px;
@@ -87,6 +87,32 @@
   --blocked: #b83a0b;
   --blocked-soft: #fbe6dc;
   --focus: #1f5fae;
+
+  /* shadcn/ui semantic aliases. They point at the tokens above, so dark mode follows automatically. */
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--ledger);
+  --primary-foreground: var(--on-ledger);
+  --secondary: var(--ledger-soft);
+  --secondary-foreground: var(--ink);
+  --muted: var(--ground);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--ledger-soft);
+  --accent-foreground: var(--ink);
+  --destructive: var(--blocked);
+  --border: var(--line);
+  --input: var(--control-border);
+  --ring: var(--focus);
+  --chart-1: var(--ledger);
+  --chart-2: var(--compliant);
+  --chart-3: var(--marker);
+  --chart-4: var(--blocked);
+  --chart-5: var(--ink-muted);
+  --radius: var(--radius-lg);
 }
 
 @media (prefers-color-scheme: dark) {

@@ -28,10 +28,39 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
   --radius-*: initial;
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+  /* Nothing is rounder than radius-lg, so the larger steps shadcn uses collapse onto it. */
+  --radius-xl: var(--radius-lg);
+  --radius-2xl: var(--radius-lg);
+  --radius-3xl: var(--radius-lg);
+  --radius-4xl: var(--radius-lg);
 
   --text-*: initial;
   --text-display: var(--type-display-size);
@@ -70,6 +99,17 @@
   --text-meta--line-height: var(--type-meta-line);
   --text-meta--font-weight: var(--type-meta-weight);
   --text-meta--letter-spacing: var(--type-meta-tracking);
+  /* Default size names used inside shadcn/ui components, mapped onto the scale (type.aliases). */
+  --text-xs: var(--type-meta-size);
+  --text-xs--line-height: var(--type-meta-line);
+  --text-sm: var(--type-control-size);
+  --text-sm--line-height: var(--type-control-line);
+  --text-base: var(--type-body-size);
+  --text-base--line-height: var(--type-body-line);
+  --text-lg: var(--type-heading-size);
+  --text-lg--line-height: var(--type-heading-line);
+  --text-xl: var(--type-title-size);
+  --text-xl--line-height: var(--type-title-line);
 
   /* The design system has no shadows. */
   --shadow-*: initial;

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "paths": { "@/*": ["./src/*"] },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
@@ -25,5 +26,5 @@
     /* The mock adapter imports the frozen contract and fixture JSON from the repo root */
     "resolveJsonModule": true
   },
-  "include": ["src", "../contracts/*.json", "../*.fixture.json"]
+  "include": ["src", "design/*.json", "../contracts/*.json", "../*.fixture.json"]
 }

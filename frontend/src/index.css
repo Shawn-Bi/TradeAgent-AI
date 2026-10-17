@@ -1,15 +1,36 @@
 @import "tailwindcss";
-/* Global design tokens and their Tailwind mapping, both generated from design/tokens.json (npm run tokens). */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Fonts are bundled, so the demo works without a network connection. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+/* Global design tokens, shadcn aliases and their Tailwind mapping, generated from design/tokens.json
+   (npm run tokens). No colour, size or radius is defined anywhere else. */
 @import "./styles/tokens.css";
 @import "./styles/theme.css";
 @import "./styles/components.css" layer(components);
 @import "./styles/app.css" layer(components);
 
+/* `dark:` utilities follow the same switch as the tokens: the OS setting unless data-theme overrides it. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
   body {
     margin: 0;
-    background: var(--ground);
-    color: var(--ink);
+    background: var(--background);
+    color: var(--foreground);
     font: var(--type-body);
   }
   code,
