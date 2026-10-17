@@ -15,19 +15,19 @@ deterministic risk-gated engine are unchanged. The key is read server-side and n
 from __future__ import annotations
 
 import json
-import os
 import re
+import threading
 import time
-from pathlib import Path
+from collections import deque
 
 import httpx
 import openai
 from openai import OpenAI
 
+from .config import setting as _setting
+
 DEFAULT_BASE_URL = "https://api.nicrron.ai/v1"
 DEFAULT_MODEL = "nicrron/auto"
-BACKEND_DIR = Path(__file__).resolve().parent
-DEFAULT_ENV_FILES = (BACKEND_DIR / ".env", BACKEND_DIR.parent / ".env")
 KEY_HELP = (
     "Create backend/.env (copy backend/.env.example) with the line NICRRON_API_KEY=sk-af-... "
     "(key from your Nicrron dashboard), then retry. No restart is needed."
@@ -48,44 +48,6 @@ class NicrronError(RuntimeError):
 
 # ---- configuration ----------------------------------------------------------
 
-def _env_files() -> tuple[Path, ...]:
-    override = os.getenv("NICRRON_ENV_FILE")
-    return (Path(override),) if override else DEFAULT_ENV_FILES
-
-
-def _read_env_file(path: Path) -> dict[str, str]:
-    values: dict[str, str] = {}
-    try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except OSError:
-        return values
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, val = line.partition("=")
-        key = key.strip().removeprefix("export ").strip()
-        val = val.strip()
-        if val[:1] in ("'", '"') and val[-1:] == val[:1] and len(val) >= 2:
-            val = val[1:-1]
-        else:
-            val = val.split(" #", 1)[0].strip()
-        values[key] = val
-    return values
-
-
-def _setting(name: str, default: str | None = None) -> str | None:
-    """Process environment wins; then backend/.env, then repo-root .env."""
-    val = os.getenv(name)
-    if val:
-        return val.strip()
-    for path in _env_files():
-        val = _read_env_file(path).get(name)
-        if val:
-            return val
-    return default
-
-
 def get_api_key() -> str | None:
     return _setting("NICRRON_API_KEY") or None
 
@@ -101,6 +63,50 @@ def config() -> dict:
 
 def status() -> str:
     return "CONFIGURED" if get_api_key() else "NOT_CONFIGURED"
+
+
+# ---- spend guard ------------------------------------------------------------
+
+class _Budget:
+    """Process-wide cap on paid Nicrron calls: N per rolling hour and M in flight."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._calls: deque[float] = deque()
+        self._in_flight = 0
+
+    def reset(self) -> None:
+        with self._lock:
+            self._calls.clear()
+            self._in_flight = 0
+
+    def acquire(self) -> None:
+        per_hour = int(_setting("NICRRON_MAX_CALLS_PER_HOUR", "20"))
+        concurrent = int(_setting("NICRRON_MAX_CONCURRENT", "1"))
+        now = time.monotonic()
+        with self._lock:
+            while self._calls and now - self._calls[0] >= 3600:
+                self._calls.popleft()
+            if self._in_flight >= concurrent:
+                raise NicrronError("NICRRON_BUSY", "Another Nicrron generation is already running; retry in a few "
+                                   "seconds")
+            if len(self._calls) >= per_hour:
+                wait = int(3600 - (now - self._calls[0])) + 1
+                raise NicrronError("NICRRON_BUDGET_EXCEEDED", f"Demo spend guard: {per_hour} Nicrron calls per hour "
+                                   f"reached; retry in about {wait // 60 + 1} min", retry_after=str(wait))
+            self._calls.append(now)
+            self._in_flight += 1
+
+    def release(self) -> None:
+        with self._lock:
+            self._in_flight = max(0, self._in_flight - 1)
+
+
+_budget = _Budget()
+
+
+def reset_budget() -> None:
+    _budget.reset()
 
 
 # ---- prompt -----------------------------------------------------------------
@@ -208,6 +214,7 @@ def translate(free_text: str, base_strategy: dict) -> dict:
     if not key:
         raise NicrronError("NICRRON_NOT_CONFIGURED", f"NICRRON_API_KEY is not set. {KEY_HELP}")
     cfg = config()
+    _budget.acquire()  # raises NICRRON_BUSY / NICRRON_BUDGET_EXCEEDED before any paid request
     started = time.monotonic()
     try:
         raw = _client(key, cfg).chat.completions.with_raw_response.create(
@@ -239,6 +246,8 @@ def translate(free_text: str, base_strategy: dict) -> dict:
         code = "NICRRON_UPSTREAM_ERROR" if exc.status_code >= 500 else "NICRRON_HTTP_ERROR"
         raise NicrronError(code, f"Nicrron returned HTTP {exc.status_code}: {_redact(exc.message, key)}",
                            http_status=exc.status_code) from exc
+    finally:
+        _budget.release()
     latency_ms = int((time.monotonic() - started) * 1000)
 
     try:
