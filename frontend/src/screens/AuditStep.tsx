@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConformanceStrip } from '../components/ConformanceStrip'
 import { DecisionFunnel } from '../components/DecisionFunnel'
 import { Disclosure } from '../components/Disclosure'
+import { RiskLadder } from '../components/RiskLadder'
 import { Term } from '../components/Term'
 import { Card, Nav, StepHead } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
@@ -203,6 +204,11 @@ export function AuditStep({ flow }: { flow: Flow }) {
             </TableBody>
           </Table>
         </div>
+        <RiskLadder
+          trades={run.state.completed_trades}
+          tickValueUsd={flow.approved.spec.instrument.tick_value_usd}
+          targetR={flow.approved.spec.exit.target_r}
+        />
       </Card>
 
       <Card title="Expected vs actual" right={<span className="ta-small ta-muted">{r.eligible_decisions} decisions</span>}>
