@@ -15,7 +15,7 @@ export function createHttpApi(baseUrl: string): TradeAgentApi {
       })
     } catch {
       throw new ApiError(0, {
-        error: { code: 'NETWORK_ERROR', message: `Cannot reach the backend at ${root}.`, field: null },
+        error: { code: 'NETWORK_ERROR', message: `Cannot reach the backend at ${root || window.location.origin}.`, field: null },
       })
     }
 
