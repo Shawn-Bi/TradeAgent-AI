@@ -232,7 +232,7 @@ in `/api/strategies/generate` (successful or failed) is sent as one trace to `PO
 `agent_id: "tradeagent-strategy-translator"`, the prompt and trader text as `input_messages`, Nicrron's raw JSON (or
 `[NICRRON ERROR <code>] ...`) as `output_message`, and metadata (`prompt_version`, `strategy_version`, `generator`,
 `interpreted_fields`, clarification count, `approvable`). The preset path makes no model call and sends nothing.
-Tracing never blocks: a PRISM error is reported and the request still succeeds.
+Tracing never blocks: a PRISM error is reported and the request still succeeds. Each PRISM call (KB search, trace, span) times out after `PRISM_TIMEOUT_SECONDS` (default 5, allowed 0.5–30; invalid values use 5).
 
 - `generate` request, *additive*: optional `session_id` (`[A-Za-z0-9._:-]`, max 128). Send the same value for every draft
   of one conversation; without it each call gets its own `draft-…` session.

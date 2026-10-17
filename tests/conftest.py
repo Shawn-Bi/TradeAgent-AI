@@ -19,7 +19,8 @@ def _no_live_nicrron(tmp_path, monkeypatch):
 
     monkeypatch.setenv("NICRRON_ENV_FILE", str(tmp_path / "missing.env"))
     for var in ("NICRRON_API_KEY", "DEMO_ACCESS_TOKEN", "NICRRON_MAX_CALLS_PER_HOUR", "NICRRON_MAX_CONCURRENT",
-                "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST", "PROMPT_VERSION", "PRISM_KB_HOST"):
+                "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST", "PRISM_TIMEOUT_SECONDS",
+                "PROMPT_VERSION", "PRISM_KB_HOST"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("NICRRON_MAX_RETRIES", "0")
     nicrron_client.reset_budget()

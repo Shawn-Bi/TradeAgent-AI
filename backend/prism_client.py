@@ -26,7 +26,10 @@ from .nicrron_client import _redact
 
 DEFAULT_HOST = "https://prism.blockconvey.com"
 AGENT_ID = "tradeagent-strategy-translator"
-TRACE_TIMEOUT_S = 3.0  # trace + span run after Nicrron in the request; PRISM must never noticeably slow drafting
+# Per PRISM call (KB search, trace, span). 3 s was too tight from Render, where a trace timed out and the demo
+# showed LOCAL_ONLY. Set PRISM_TIMEOUT_SECONDS to tune it without a deploy of new code; invalid values fall back.
+DEFAULT_TIMEOUT_S = 5.0
+MIN_TIMEOUT_S, MAX_TIMEOUT_S = 0.5, 30.0
 
 _transport: httpx.BaseTransport | None = None  # tests inject httpx.MockTransport here
 
@@ -44,12 +47,21 @@ def status() -> str:
     return "CONFIGURED" if cfg["project_id"] and cfg["api_key"] else "NOT_CONFIGURED"
 
 
+def timeout_s() -> float:
+    """PRISM_TIMEOUT_SECONDS if it is a number in [0.5, 30], otherwise the 5 s default. Re-read per request."""
+    try:
+        value = float(_setting("PRISM_TIMEOUT_SECONDS", "") or DEFAULT_TIMEOUT_S)
+    except ValueError:
+        return DEFAULT_TIMEOUT_S
+    return value if MIN_TIMEOUT_S <= value <= MAX_TIMEOUT_S else DEFAULT_TIMEOUT_S
+
+
 def transport_kwargs() -> dict:
     return {"transport": _transport} if _transport is not None else {}
 
 
 def _client() -> httpx.Client:
-    return httpx.Client(timeout=TRACE_TIMEOUT_S, **transport_kwargs())
+    return httpx.Client(timeout=timeout_s(), **transport_kwargs())
 
 
 def send_trace(*, session_id: str, model: str | None, input_messages: list[dict], output_message: str,
