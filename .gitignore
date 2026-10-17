@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets: every .env variant is ignored; only the placeholder example is tracked
+.env
+.env.*
+*.env
+!.env.example
+!**/.env.example
+
+# Local runtime output (audit logs may contain customer free text)
+data/
