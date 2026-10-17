@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from simulation import FIXTURES, FixtureError, get_report, run_simulation
 from simulation.scenarios import generate_scenarios
 
-from . import audit, nicrron_client
+from . import audit, nicrron_client, prism_client
 from .config import setting
 from .errors import ApiError, envelope
 from .schemas import GenerateRequest, ScenarioRequest, SimulationStartRequest, StrategyRef
@@ -135,6 +135,13 @@ def start_simulation(req: SimulationStartRequest):
         result = run_simulation(spec, seed=req.seed, fixture=req.fixture)
     except FixtureError as exc:
         raise ApiError(400, "UNKNOWN_FIXTURE", str(exc), "fixture") from exc
+    # CONNECTED only when PRISM accepted the trace of the model call that wrote this strategy version.
+    # Engine decisions themselves stay in the local audit (they are deterministic, not agent output).
+    trace = strategies.prism_trace(req.strategy_id, req.version)
+    result["prism_status"] = "CONNECTED" if trace else "LOCAL_ONLY"
+    result["prism_trace_id"] = trace["trace_id"] if trace else None
+    result["prism_session_id"] = trace["session_id"] if trace else None
+    result["prism_scope"] = "STRATEGY_GENERATION"
     result["report"] = get_report(result)
     sim_id = result["simulation_id"]
     with _sims_lock:
@@ -178,5 +185,5 @@ def reset_state() -> None:
         _simulations.clear()
 
 
-log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM: LOCAL_ONLY", nicrron_client.status(),
-         "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF")
+log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM tracing: %s", nicrron_client.status(),
+         "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF", prism_client.status())

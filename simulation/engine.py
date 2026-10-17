@@ -24,7 +24,7 @@ from .risk import SessionRiskState, pre_trade_gates
 STARTING_EQUITY_USD = 100_000.0
 DEMO_MARGIN_PER_CONTRACT_USD = 5_000.0  # demo assumption, not an exchange margin figure
 DISCLAIMER = "Synthetic demo, not historical backtest"
-PRISM_STATUS = "LOCAL_ONLY"  # no verified PRISM integration
+PRISM_STATUS = "LOCAL_ONLY"  # the backend upgrades this to CONNECTED when PRISM accepted the generation trace
 ORDER_ACTIONS = {"OPEN_LONG", "EXIT_PARTIAL", "EXIT_STOP", "EXIT_CUTOFF"}
 ASSUMPTIONS = [
     "Synthetic MOCK candles generated in code; not historical market data",

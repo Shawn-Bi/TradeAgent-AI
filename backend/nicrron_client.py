@@ -28,6 +28,7 @@ from .config import setting as _setting
 
 DEFAULT_BASE_URL = "https://api.nicrron.ai/v1"
 DEFAULT_MODEL = "nicrron/auto"
+PROMPT_VERSION = "v1"  # sent to PRISM with every trace so v1/v2 runs can be scored side by side
 KEY_HELP = (
     "Create backend/.env (copy backend/.env.example) with the line NICRRON_API_KEY=sk-af-... "
     "(key from your Nicrron dashboard), then retry. No restart is needed."
