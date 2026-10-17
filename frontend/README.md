@@ -7,27 +7,29 @@ npm install
 npm run dev
 ```
 
-## API adapter
+## Running against the backend
 
-`src/api/` holds the typed client for the frozen v1 contract (`../contracts/strategy.example.json`, `../docs/PRD.md` section 8).
-
-- `types.ts`: request and response types. Fields marked PROVISIONAL (`positions`, `completed_trades`, `clarification_questions` items) are not specified in the PRD yet; confirm with B.
-- `mock.ts`: in-browser mock with the same shapes. It reads the contract and `../two_loss_lock.fixture.json` directly, never computes P&L, and always reports `LOCAL_ONLY`.
-- `http.ts`: fetch adapter for B's FastAPI backend.
-
-Pick the adapter with env vars (copy `.env.example` to `.env`):
+Start B's backend on port 8000 (see the repo README), then `npm run dev`. The app calls relative `/api/...` paths and Vite proxies them to `VITE_PROXY_TARGET` (default `http://localhost:8000`), so development works like a same-origin deployment and needs no CORS or token in the browser.
 
 ```bash
-VITE_API_MODE=mock                       # default
-VITE_API_MODE=http                       # call the backend
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_MODE=mock          # optional: in-browser mock instead of the backend (offline demo backup)
+VITE_PROXY_TARGET=http://localhost:8000
 ```
+
+Never put a key or token in a `VITE_` variable: it ends up in the public bundle.
+
+## API adapter
+
+`src/api/types.ts` follows `../backend/API.md`: the frozen PRD fields plus the documented additive ones (`generator`, `nicrron`, `interpreted_fields`, `unsupported_requirements`, `prism`, trade `legs`, event `category`, …). `http.ts` is the fetch adapter; `mock.ts` returns the same shapes offline and, with no model, never pretends to have read free text.
 
 ## Flow
 
-`src/flow/useFlow.ts` holds the wizard state: Preset → Generate → Approve → Scenario → Simulate → Audit (`src/screens/`). Any rule change returns to DRAFT and clears approval and runs. A clarification answer is another `generate` call with the choice's overrides. Runs are kept per fixture.
+`src/flow/useFlow.ts` holds the wizard state: Preset → Generate → Approve → Scenario → Simulate → Audit (`src/screens/`).
 
-The mock replays a fixed synthetic market per fixture, so changing a rule changes the outcome, never the prices. Free-text interpretation travels in `warnings` with `APPLIED` / `NOT_APPLIED` / `PRESET_FALLBACK` prefixes (`src/lib/warnings.ts`); this convention is proposed to B, not yet agreed.
+- Generate sends only the values the user changed (explicit overrides win over Nicrron's reading of the text) and one `session_id` per drafting conversation, so PRISM groups the drafts.
+- Clarification questions are answered by rewriting the text and generating again; the version is approvable only when the backend says so.
+- Any rule change returns to DRAFT and clears approval and runs. Runs are kept per session (fixture).
+- The decision log hides routine `SIGNAL`/`DATA` checks by default.
 
 ## Styles
 

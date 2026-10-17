@@ -1,15 +1,18 @@
-// In-browser mock of owner B's backend, returning the PRD section 8 response shapes so the UI can be
-// built before the API is up. It is a stand-in, not the engine: B's deterministic Python engine is the
-// source of truth. Two rules the mock still keeps honest:
-//   1. The market is fixed per session. Changing a rule changes what the engine does, never the prices.
-//   2. Every dollar figure is computed from those fixed prices and the approved rules. Nothing is typed in.
+// In-browser mock of B's backend (VITE_API_MODE=mock), returning the same shapes as backend/API.md so the
+// UI works offline as a demo backup. It is a stand-in, not the engine: B's deterministic Python engine is
+// the source of truth. Rules the mock keeps honest:
+//   1. No model is called, so free text is never "interpreted": like the backend's fallback, a draft with
+//      free text gets a clarification question and cannot be approved.
+//   2. The market is fixed per session. Changing a rule changes what the engine does, never the prices.
+//   3. Every dollar figure is computed from those fixed prices and the approved rules.
 
 import contractStrategy from '../../../contracts/strategy.example.json'
 import { ApiError } from './errors'
 import type {
   AuditEvent,
-  ClarificationQuestion,
   CompletedTrade,
+  EngineAction,
+  EventCategory,
   SimulationReport,
   SimulationState,
   StrategySpec,
@@ -24,7 +27,7 @@ const baseStrategy = contractStrategy as StrategySpec
 
 interface StoredStrategy {
   spec: StrategySpec
-  clarifications: ClarificationQuestion[]
+  questions: string[]
 }
 
 interface StoredSimulation {
@@ -37,7 +40,7 @@ const delay = () => new Promise((resolve) => setTimeout(resolve, LATENCY_MS))
 const clone = <T>(value: T): T => structuredClone(value)
 const key = (id: string, version: number) => `${id}@${version}`
 const fmtUsd = (n: number) =>
-  `${n > 0 ? '+' : n < 0 ? '−' : ''}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`
 
 function fail(status: number, code: string, message: string, field: string | null = null): never {
   throw new ApiError(status, { error: { code, message, field } })
@@ -55,78 +58,15 @@ function deepMerge<T>(target: T, overrides: Record<string, unknown>): T {
   return out as T
 }
 
-// ---------- Free-text interpretation ----------
-// Each sentence either becomes a rule (APPLIED), needs a question, or is reported as NOT_APPLIED.
-// Warning prefixes follow the convention in src/lib/warnings.ts.
-
-const MAX_BUFFER_TICKS = 50
-
-function interpret(freeText: string, spec: StrategySpec) {
-  const clarifications: ClarificationQuestion[] = []
-  const warnings: string[] = []
-  const sentences = freeText
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-  for (const sentence of sentences) {
-    const points = sentence.match(/(\d+(?:\.\d+)?)\s*(points?|pts?)\b/i)
-    const ticks = sentence.match(/(\d+)\s*ticks?\b/i)
-    if (points) {
-      const n = Number(points[1])
-      const asTicks = (t: number) => sentence.replace(points[0], `${t} ticks`)
-      const choices = [
-        {
-          label: `${n} ticks (${(n * spec.instrument.tick_size).toFixed(3)} USD/MMBtu)`,
-          overrides: { stop: { buffer_ticks: n } },
-          replacement_text: asTicks(n),
-        },
-      ]
-      if (Number.isInteger(n * 10) && n * 10 <= MAX_BUFFER_TICKS)
-        choices.push({
-          label: `${n} cents (${(n * 0.01).toFixed(3)} USD/MMBtu, which is ${n * 10} ticks)`,
-          overrides: { stop: { buffer_ticks: n * 10 } },
-          replacement_text: asTicks(n * 10),
-        })
-      clarifications.push({
-        id: `points-${clarifications.length + 1}`,
-        field: 'stop.buffer_ticks',
-        source_text: sentence,
-        question: `Is that ${n} ticks or ${n} cents? Stops are set in ticks: 1 tick = 0.001 USD/MMBtu = $10 per contract.`,
-        choices,
-        custom: { unit: 'ticks', field: 'stop.buffer_ticks', min: 1, max: MAX_BUFFER_TICKS },
-      })
-    } else if (/\bshort\b/i.test(sentence)) {
-      clarifications.push({
-        id: `short-${clarifications.length + 1}`,
-        field: 'direction',
-        source_text: sentence,
-        question: 'This version is long only. How should the short idea be handled?',
-        choices: [{ label: 'Keep long only and drop this sentence', overrides: {}, replacement_text: '' }],
-      })
-    } else if (ticks && /\bstop\b/i.test(sentence)) {
-      const n = Number(ticks[1])
-      if (n >= 1 && n <= MAX_BUFFER_TICKS) {
-        spec.stop.buffer_ticks = n
-        warnings.push(`APPLIED · ${sentence} · stop buffer set to ${n} ticks`)
-      } else {
-        warnings.push(`NOT_APPLIED · ${sentence} · the stop buffer must be 1 to ${MAX_BUFFER_TICKS} ticks`)
-      }
-    } else if (/overnight|tomorrow/i.test(sentence)) {
-      warnings.push(
-        `NOT_APPLIED · ${sentence} · nothing is held overnight; positions go flat by ${spec.session.cutoff_local} ET`,
-      )
-    } else if (/\b(skip|avoid|wait|first|after the open|minutes?)\b/i.test(sentence)) {
-      warnings.push(`NOT_APPLIED · ${sentence} · time-of-day filters are not supported in this version`)
-    } else if (/\bnews|chop|volatil/i.test(sentence)) {
-      warnings.push(`NOT_APPLIED · ${sentence} · news and chop filters are not implemented; pause manually`)
-    } else {
-      warnings.push(
-        `NOT_APPLIED · ${sentence} · not recognised as a rule this version supports; it will not affect the simulation`,
-      )
-    }
-  }
-  return { clarifications, warnings }
+function summarize(s: StrategySpec) {
+  return (
+    `LONG_ONLY ${s.instrument.symbol} (demo, simulation only). IF ${s.timeframes.trend_minutes}m close > ` +
+    `SMA${s.trend.period} AND SMA${s.trend.period} rising over ${s.trend.slope_bars} bars AND the latest ` +
+    `${s.timeframes.entry_minutes}m bar low is within ${s.entry.tolerance_ticks} ticks of SMA${s.entry.ma_period} ` +
+    `AND close > open AND close > SMA THEN buy ${s.quantity_contracts}. Stop: ${s.stop.buffer_ticks} ticks below the ` +
+    `${s.stop.lookback_5m_bars}-bar swing low. Target: ${s.exit.target_r}R on ${s.exit.first_target_close_contracts} ` +
+    `contract. Lock after ${s.risk.consecutive_loss_lock} consecutive losses; max ${s.risk.max_completed_trades_per_session} trades.`
+  )
 }
 
 // ---------- Fixed synthetic sessions ----------
@@ -135,21 +75,17 @@ interface Signal {
   time: string
   entry: number
   swing_low: number
-  /** 'drop' falls straight through any allowed stop; 'rally' peaks at `peak`, then closes at `close`. */
+  /** 'drop' falls through any allowed stop; 'rally' peaks at `peak`, then the stop holds until the cutoff. */
   path: 'drop' | 'rally'
   exit_time: string
   peak?: number
   close?: number
 }
 
-interface Session {
-  no_trades: { time: string; rule_id: string; reason: string }[]
-  signals: Signal[]
-}
-
-const SESSIONS: Record<string, Session> = {
+const SESSIONS: Record<string, { description: string; no_trades: string[]; signals: Signal[] }> = {
   'two-loss-lock': {
-    no_trades: [{ time: '09:45', rule_id: 'TREND_15M', reason: '15m SMA not rising yet, so no entry is allowed.' }],
+    description: 'Mock: two losing positions, then a third otherwise-eligible entry',
+    no_trades: ['09:45', '10:05'],
     signals: [
       { time: '10:35', entry: 2.914, swing_low: 2.911, path: 'drop', exit_time: '11:05' },
       { time: '12:20', entry: 2.926, swing_low: 2.922, path: 'drop', exit_time: '12:55' },
@@ -157,10 +93,8 @@ const SESSIONS: Record<string, Session> = {
     ],
   },
   standard: {
-    no_trades: [
-      { time: '09:45', rule_id: 'TREND_15M', reason: '15m SMA not rising yet, so no entry is allowed.' },
-      { time: '10:05', rule_id: 'ENTRY_PULLBACK', reason: 'Pullback went past the tolerance below the SMA. No entry.' },
-    ],
+    description: 'Mock: a loss, then a rally',
+    no_trades: ['09:45', '10:05', '14:30'],
     signals: [
       { time: '10:35', entry: 2.914, swing_low: 2.911, path: 'drop', exit_time: '11:05' },
       { time: '12:20', entry: 2.926, swing_low: 2.922, path: 'rally', exit_time: '13:15', peak: 2.96, close: 2.941 },
@@ -178,101 +112,102 @@ function replay(simulationId: string, spec: StrategySpec, fixture: string): Stor
   const toTicks = (d: number) => Math.round(d / tick)
   const px = (n: number) => n.toFixed(3)
 
-  const raw: Omit<AuditEvent, 'event_id' | 'seq'>[] = []
-  const log = (time: string, rule_id: string, action: string, reason: string) =>
-    raw.push({ timestamp: ts(time), rule_id, expected_action: action, actual_action: action, compliant: true, reason })
+  const raw: (Omit<AuditEvent, 'event_id' | 'seq'> & { i: number })[] = []
+  const log = (
+    time: string,
+    category: EventCategory,
+    rule_id: string,
+    action: EngineAction,
+    reason_code: string,
+    reason: string,
+    extra: Partial<AuditEvent> = {},
+  ) =>
+    raw.push({
+      timestamp: ts(time),
+      rule_id,
+      expected_action: action,
+      actual_action: action,
+      compliant: true,
+      reason,
+      reason_code,
+      category,
+      eligible: true,
+      ...extra,
+      i: raw.length,
+    })
 
-  session.no_trades.forEach((n) => log(n.time, n.rule_id, 'NO_TRADE', n.reason))
+  session.no_trades.forEach((t) =>
+    log(t, 'SIGNAL', 'TREND_15M', 'NO_TRADE', 'NO_TRADE_TREND', '15m SMA not rising yet, so no entry is allowed.'),
+  )
 
   const trades: CompletedTrade[] = []
   let losses = 0
-  let locked = false
+  let lockReason: string | null = null
 
   for (const s of session.signals) {
     if (s.time >= cutoff) continue
-    if (locked) {
-      log(
-        s.time,
-        'RISK_TWO_LOSSES',
-        'BLOCK_ENTRY',
-        `Valid pullback signal at ${px(s.entry)} refused: TWO_CONSECUTIVE_LOSSES. No order opened.`,
-      )
+    if (lockReason) {
+      log(s.time, 'RISK_GATE', 'RISK_TWO_LOSSES', 'BLOCK_ENTRY', lockReason, `Valid pullback signal at ${px(s.entry)} refused: entries locked. No order opened.`, { price: s.entry })
       continue
     }
-    if (trades.length >= spec.risk.max_completed_trades_per_session) {
-      log(s.time, 'RISK_MAX_TRADES', 'NO_TRADE', `Already ${trades.length} completed trades this session.`)
-      continue
-    }
+    const id = `P${trades.length + 1}`
     const riskTicks = toTicks(s.entry - s.swing_low) + spec.stop.buffer_ticks
     const stop = s.entry - riskTicks * tick
     const targetTicks = Math.round(spec.exit.target_r * riskTicks)
     const target = s.entry + targetTicks * tick
-    log(
-      s.time,
-      'ENTRY_PULLBACK',
-      'OPEN_LONG',
-      `Pullback held at SMA(${spec.entry.ma_period}) with a bullish close. Entry ${px(s.entry)}, stop ${px(stop)} (${riskTicks} ticks), target ${px(target)}.`,
-    )
+    log(s.time, 'EXECUTION', 'ENTRY_5M_PULLBACK', 'OPEN_LONG', 'ENTRY_FILLED', `Paper buy ${qty} @ ${px(s.entry)}; stop ${px(stop)} = swing low - ${spec.stop.buffer_ticks} ticks, target ${px(target)}.`, { price: s.entry, position_id: id })
 
-    let pnl: number
-    let exitPrice: number
-    let reason: CompletedTrade['exit_reason']
+    const legs: NonNullable<CompletedTrade['legs']> = []
     if (s.path === 'drop') {
-      pnl = -riskTicks * tickUsd * qty
-      exitPrice = stop
-      reason = 'STOP'
-      log(s.exit_time, 'STOP_HIT', 'EXIT_ALL', `Stop ${px(stop)} hit. ${qty} contracts closed, ${fmtUsd(pnl)}.`)
+      const pnl = -riskTicks * tickUsd * qty
+      legs.push({ exit_time: ts(s.exit_time), contracts: qty, exit_price: stop, exit_reason: 'STOP_HIT', pnl_usd: pnl })
+      log(s.exit_time, 'EXECUTION', 'EXIT_STOP', 'EXIT_STOP', 'STOP_HIT', `Protective stop touched: sell ${qty} @ ${px(stop)}`, { price: stop, pnl_usd: pnl, position_id: id })
     } else {
       const close = s.close ?? s.entry
+      let open = qty
       if (target <= (s.peak ?? s.entry)) {
-        const firstQty = spec.exit.first_target_close_contracts
-        const restQty = qty - firstQty
-        const first = targetTicks * tickUsd * firstQty
-        const rest = toTicks(close - s.entry) * tickUsd * restQty
-        pnl = first + rest
-        exitPrice = (target * firstQty + close * restQty) / qty
-        reason = 'TARGET_THEN_CUTOFF'
-        log(s.exit_time, 'TARGET_HIT', 'EXIT_PARTIAL', `Target ${px(target)} hit. ${firstQty} contract closed, ${fmtUsd(first)}.`)
-        log(cutoff, 'SESSION_CUTOFF', 'EXIT_REMAINDER', `${cutoff} cutoff. Last contract closed at ${px(close)}, ${fmtUsd(rest)}.`)
-      } else {
-        pnl = toTicks(close - s.entry) * tickUsd * qty
-        exitPrice = close
-        reason = 'CUTOFF'
-        log(
-          cutoff,
-          'SESSION_CUTOFF',
-          'EXIT_REMAINDER',
-          `Target ${px(target)} never reached. ${cutoff} cutoff closed ${qty} contracts at ${px(close)}, ${fmtUsd(pnl)}.`,
-        )
+        const n = spec.exit.first_target_close_contracts
+        const pnl = targetTicks * tickUsd * n
+        legs.push({ exit_time: ts(s.exit_time), contracts: n, exit_price: target, exit_reason: 'TARGET_PARTIAL_EXIT', pnl_usd: pnl })
+        log(s.exit_time, 'EXECUTION', 'EXIT_TARGET', 'EXIT_PARTIAL', 'TARGET_PARTIAL_EXIT', `${spec.exit.target_r}R target touched; close ${n} contract(s)`, { price: target, pnl_usd: pnl, position_id: id })
+        open -= n
       }
+      const pnl = toTicks(close - s.entry) * tickUsd * open
+      legs.push({ exit_time: ts(cutoff), contracts: open, exit_price: close, exit_reason: 'CUTOFF_EXIT', pnl_usd: pnl })
+      log(cutoff, 'EXECUTION', 'EXIT_CUTOFF', 'EXIT_CUTOFF', 'CUTOFF_EXIT', `${cutoff} demo cutoff: sell ${open} @ ${px(close)}`, { price: close, pnl_usd: pnl, position_id: id })
     }
+    const total = legs.reduce((sum, l) => sum + l.pnl_usd, 0)
+    const closedAt = legs[legs.length - 1].exit_time.slice(11, 16)
     trades.push({
-      position_id: `P${trades.length + 1}`,
-      contracts: qty,
+      position_id: id,
+      status: 'CLOSED',
+      entry_time: ts(s.time),
       entry_price: s.entry,
-      exit_price: Number(exitPrice.toFixed(4)),
-      exit_reason: reason,
-      realized_pnl_usd: pnl,
+      stop_price: Number(stop.toFixed(3)),
+      target_price: Number(target.toFixed(3)),
+      initial_risk_ticks: riskTicks,
+      quantity_contracts: qty,
+      open_contracts: 0,
+      legs,
+      realized_pnl_usd: total,
+      result: total > 0 ? 'WIN' : total < 0 ? 'LOSS' : 'BREAKEVEN',
     })
-    losses = pnl < 0 ? losses + 1 : 0
-    if (losses >= spec.risk.consecutive_loss_lock) {
-      locked = true
-      log(
-        s.exit_time,
-        'RISK_TWO_LOSSES',
-        'LOCK_ENTRIES',
-        `${losses} losing trades in a row. New entries locked until the next session.`,
-      )
-    }
+    losses = total < 0 ? losses + 1 : 0
+    log(closedAt, 'RISK', 'RISK_LOSS_STREAK', total < 0 ? 'COUNT_LOSS' : 'RESET_STREAK', 'POSITION_CLOSED', `${id} fully closed, net ${fmtUsd(total)}; consecutive_losses=${losses}`, { pnl_usd: total, position_id: id })
+    if (losses >= spec.risk.consecutive_loss_lock) lockReason = 'TWO_CONSECUTIVE_LOSSES'
+    else if (trades.length >= spec.risk.max_completed_trades_per_session) lockReason = 'MAX_TRADES'
+    if (lockReason)
+      log(closedAt, 'RISK_LOCK', lockReason === 'MAX_TRADES' ? 'RISK_MAX_TRADES' : 'RISK_TWO_LOSSES', 'LOCK_ENTRIES', lockReason, lockReason === 'MAX_TRADES' ? 'Maximum completed trades reached; no further entries this session' : `${losses} completed losing trades: entries locked until next session`)
   }
-  if (!raw.some((e) => e.rule_id === 'SESSION_CUTOFF')) log(cutoff, 'SESSION_CUTOFF', 'NO_ACTION', `Already flat at the ${cutoff} cutoff.`)
+  log(cutoff, 'SESSION', 'RISK_SESSION_CUTOFF', 'CLOSE_SESSION', 'SESSION_CLOSED', `Session closed (${cutoff} demo cutoff): flat, no new entries`)
 
   const events: AuditEvent[] = raw
-    .map((e, i) => ({ e, i }))
-    .sort((a, b) => a.e.timestamp.localeCompare(b.e.timestamp) || a.i - b.i)
-    .map(({ e }, n) => ({ event_id: `evt-${n + 1}`, seq: n + 1, ...e }))
-  const compliant = events.filter((e) => e.compliant).length
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp) || a.i - b.i)
+    .map(({ i: _i, ...e }, n) => ({ event_id: `evt-${n + 1}`, seq: n + 1, ...e }))
+  const eligible = events.filter((e) => e.eligible)
+  const compliant = eligible.filter((e) => e.compliant).length
   const pnl = trades.reduce((sum, t) => sum + t.realized_pnl_usd, 0)
+  const blocked = events.filter((e) => e.actual_action === 'BLOCK_ENTRY').length
 
   return {
     state: {
@@ -283,19 +218,30 @@ function replay(simulationId: string, spec: StrategySpec, fixture: string): Stor
       positions: [],
       completed_trades: trades,
       consecutive_losses: losses,
-      entry_locked: locked,
-      lock_reason: locked ? 'TWO_CONSECUTIVE_LOSSES' : null,
+      entry_locked: lockReason !== null,
+      lock_reason: lockReason,
       prism_status: 'LOCAL_ONLY',
+      fixture,
+      fixture_description: session.description,
+      starting_equity_usd: STARTING_EQUITY_USD,
+      realized_pnl_usd: pnl,
+      completed_trade_count: trades.length,
+      blocked_entry_count: blocked,
+      prism_trace_id: null,
     },
     events,
     report: {
       simulation_id: simulationId,
       synthetic: true,
-      eligible_decisions: events.length,
+      eligible_decisions: eligible.length,
       compliant_decisions: compliant,
-      execution_conformance: events.length ? compliant / events.length : null,
-      violations: events.length - compliant,
+      execution_conformance: eligible.length ? compliant / eligible.length : null,
+      violations: eligible.length - compliant,
       disclaimer: DISCLAIMER,
+      blocked_entries: blocked,
+      completed_trades: trades.length,
+      realized_pnl_usd: pnl,
+      prism_status: 'LOCAL_ONLY',
     },
   }
 }
@@ -305,24 +251,24 @@ function replay(simulationId: string, spec: StrategySpec, fixture: string): Stor
 export function createMockApi(): TradeAgentApi {
   const strategies = new Map<string, StoredStrategy>()
   const simulations = new Map<string, StoredSimulation>()
-  const latestVersion = new Map<string, number>()
+  let latest = 0
 
   function requireStrategy(id: string, version: number): StoredStrategy {
     const stored = strategies.get(key(id, version))
-    if (!stored) fail(404, 'STRATEGY_NOT_FOUND', `No strategy ${id} version ${version}.`, 'version')
+    if (!stored) fail(404, 'STRATEGY_NOT_FOUND', `Strategy ${id} v${version} not found`, 'version')
     return stored
   }
 
   function requireApproved(id: string, version: number): StrategySpec {
     const { spec } = requireStrategy(id, version)
     if (spec.approval_status !== 'APPROVED')
-      fail(409, 'STRATEGY_NOT_APPROVED', `Approve ${id} version ${version} before running it.`)
+      fail(409, 'STRATEGY_NOT_APPROVED', `Strategy ${id} v${version} is DRAFT; approve it before running`, 'version')
     return spec
   }
 
   function requireSimulation(id: string): StoredSimulation {
     const sim = simulations.get(id)
-    if (!sim) fail(404, 'SIMULATION_NOT_FOUND', `No simulation ${id}.`, 'simulation_id')
+    if (!sim) fail(404, 'SIMULATION_NOT_FOUND', `Simulation '${id}' not found`, 'simulation_id')
     return sim
   }
 
@@ -332,70 +278,74 @@ export function createMockApi(): TradeAgentApi {
       return { ok: true, contract_version: baseStrategy.schema_version }
     },
 
-    async generateStrategy({ overrides, free_text }) {
+    async generateStrategy({ overrides, free_text, session_id }) {
       await delay()
-      const id = baseStrategy.strategy_id
-      // Every generate makes a new DRAFT version; earlier versions stay immutable.
-      const version = (latestVersion.get(id) ?? 0) + 1
-      latestVersion.set(id, version)
-
       const spec = deepMerge(baseStrategy, overrides)
-      spec.strategy_id = id
-      spec.version = version
+      spec.version = ++latest
       spec.approval_status = 'DRAFT'
-      const { clarifications, warnings } = interpret(free_text, spec)
-      strategies.set(key(id, version), { spec, clarifications })
-
+      const text = free_text.trim()
+      const questions: string[] = []
+      if (text) {
+        questions.push(
+          'Mock mode did not interpret your text (no AI model is called offline). The strategy shown is the demo preset plus your explicit settings, NOT your written requirements. Clear the free text to use the demo preset.',
+        )
+        if (/\bpoints?\b/i.test(text))
+          questions.push("Your text mentions 'points'. NG_SIM stops are measured in ticks (1 tick = 0.001 price units). Restate the stop buffer in ticks.")
+      }
+      strategies.set(key(spec.strategy_id, spec.version), { spec, questions })
       return {
         strategy: clone(spec),
-        clarification_questions: clone(clarifications),
-        warnings: [
-          'PRESET_FALLBACK · No AI model is connected, so the built-in preset wrote these rules.',
-          ...warnings,
-          'Fees and slippage are zero in this demo.',
-        ],
-        strategy_summary:
-          `Long ${spec.instrument.symbol} only. Trade with the ${spec.timeframes.trend_minutes}m trend and enter on a ` +
-          `${spec.timeframes.entry_minutes}m pullback to SMA(${spec.entry.ma_period}). Stop ${spec.stop.buffer_ticks} ticks ` +
-          `below the swing low, take ${spec.exit.first_target_close_contracts} of ${spec.quantity_contracts} contracts off at ` +
-          `${spec.exit.target_r}R, and stop taking new trades after ${spec.risk.consecutive_loss_lock} losses in a row.`,
+        clarification_questions: questions,
+        warnings: text ? ['DEMO PRESET FALLBACK: this proposal was not generated by Nicrron.'] : [],
+        strategy_summary: summarize(spec),
+        generator: 'PRESET_FALLBACK',
+        approvable: questions.length === 0,
+        nicrron: {
+          status: text ? 'NOT_CONFIGURED' : 'NOT_REQUESTED',
+          model_requested: null,
+          model_used: null,
+          cached: false,
+          latency_ms: null,
+          error_code: text ? 'NICRRON_NOT_CONFIGURED' : null,
+          error_message: text ? 'Mock mode: no model is called.' : null,
+          http_status: null,
+          retry_after: null,
+        },
+        interpreted_fields: [],
+        unsupported_requirements: [],
+        prism: {
+          status: 'NOT_REQUESTED',
+          trace_id: null,
+          error: null,
+          session_id: session_id ?? 'mock',
+          agent_id: 'tradeagent-strategy-translator',
+        },
       }
     },
 
     async approveStrategy({ strategy_id, version }) {
       await delay()
       const stored = requireStrategy(strategy_id, version)
-      if (stored.clarifications.length > 0)
-        fail(409, 'CLARIFICATION_REQUIRED', 'Answer the open clarification questions before approving.')
+      if (stored.questions.length > 0)
+        fail(409, 'CLARIFICATION_REQUIRED', 'Resolve clarification questions by generating a new version first', 'clarification_questions')
       stored.spec.approval_status = 'APPROVED'
-      return { strategy_id, version, approval_status: 'APPROVED' }
+      return { strategy_id, version, approval_status: 'APPROVED', approved_at: new Date().toISOString() }
     },
 
     async generateScenarios({ strategy_id, version, seed }) {
       await delay()
       const spec = requireApproved(strategy_id, version)
       const tf = spec.timeframes
-      // No computed_pnl_usd: these are narratives, and P&L must never be fabricated.
+      // The mock has no candle engine for these shapes, so no computed_pnl_usd: narratives only.
       return {
         synthetic: true,
         method: 'RULE_BASED_SYNTHETIC_REPLAY',
         seed,
+        disclaimer: 'Hypothetical synthetic scenarios, not historical backtests; no win rate is implied.',
         scenarios: [
-          {
-            name: 'trend',
-            assumptions: ['synthetic candles', `${tf.trend_minutes}m SMA(${spec.trend.period}) rising`, 'fills at trigger price, zero fees'],
-            narrative: `Price holds above a rising ${tf.trend_minutes}m SMA and pulls back to the ${tf.entry_minutes}m SMA. A bullish close confirms the entry; one contract exits at ${spec.exit.target_r}R and the other rides to the stop or the ${spec.session.cutoff_local} cutoff.`,
-          },
-          {
-            name: 'range',
-            assumptions: ['synthetic candles', `${tf.trend_minutes}m SMA flat`],
-            narrative: `The ${tf.trend_minutes}m SMA is not rising, so the trend filter never passes. The engine records NO_TRADE for each pullback and stays flat all session.`,
-          },
-          {
-            name: 'adverse',
-            assumptions: ['synthetic candles', 'two stop-outs in a row'],
-            narrative: `Two entries stop out in a row. The ${spec.risk.consecutive_loss_lock}-loss lock engages and the next otherwise valid signal is refused. Exits stay allowed.`,
-          },
+          { name: 'trend', assumptions: ['synthetic candles (mock)'], narrative: `Price holds above a rising ${tf.trend_minutes}m SMA and pulls back to the ${tf.entry_minutes}m SMA; one contract exits at ${spec.exit.target_r}R.` },
+          { name: 'range', assumptions: ['synthetic candles (mock)'], narrative: `The ${tf.trend_minutes}m SMA is flat, so the trend filter never passes and the engine records NO_TRADE.` },
+          { name: 'adverse', assumptions: ['synthetic candles (mock)'], narrative: `Entries stop out in a row; the ${spec.risk.consecutive_loss_lock}-loss lock refuses the next valid signal.` },
         ],
       }
     },
@@ -403,9 +353,9 @@ export function createMockApi(): TradeAgentApi {
     async startSimulation({ strategy_id, version, seed, fixture = 'standard' }) {
       await delay()
       const spec = requireApproved(strategy_id, version)
-      const simulationId = `sim-${seed}-${simulations.size + 1}`
+      const simulationId = `sim-${seed}-${fixture}-v${version}`
       simulations.set(simulationId, replay(simulationId, spec, fixture))
-      return { simulation_id: simulationId, status: 'COMPLETED', seed }
+      return { simulation_id: simulationId, status: 'COMPLETED', seed, fixture, strategy_id, version }
     },
 
     async getSimulation(id) {

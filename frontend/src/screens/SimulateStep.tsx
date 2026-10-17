@@ -5,7 +5,7 @@ import { StatusPill } from '../components/StatusPill'
 import { SEED, type Flow } from '../flow/useFlow'
 import { plural, signedUsd, usd } from '../lib/format'
 import { pnlTone, summarize } from '../lib/summary'
-import { FIXTURES } from './fixtures'
+import { fixtureLabel, FIXTURES } from './fixtures'
 import { DecisionLog, Kpi, SessionTimeline } from './results'
 
 export function SimulateStep({ flow }: { flow: Flow }) {
@@ -14,6 +14,9 @@ export function SimulateStep({ flow }: { flow: Flow }) {
   const spec = approved.spec
   const run = runs[fixture]
   const current = FIXTURES.find((f) => f.id === fixture)
+  // A scenario card can open its own seeded session (trend, range, adverse), which isn't in the main list.
+  const sessions = current ? FIXTURES : [...FIXTURES, { id: fixture, label: fixtureLabel(fixture), detail: '' }]
+  const detail = current?.detail || run?.state.fixture_description || 'Seeded synthetic session from the scenario step.'
   const s = run ? summarize(run) : null
   const busy = running.status === 'loading'
 
@@ -46,8 +49,8 @@ export function SimulateStep({ flow }: { flow: Flow }) {
                 label="Session"
                 value={fixture}
                 disabled={busy}
-                options={FIXTURES.map((f) => ({ value: f.id, label: `${f.label}${runs[f.id] ? ' · ran' : ''}` }))}
-                hint={current?.detail}
+                options={sessions.map((f) => ({ value: f.id, label: `${f.label}${runs[f.id] ? ' · ran' : ''}` }))}
+                hint={detail}
                 onChange={flow.setFixture}
               />
             </div>
@@ -56,7 +59,7 @@ export function SimulateStep({ flow }: { flow: Flow }) {
                 {run ? 'Run again' : 'Run simulation'}
               </Button>
               <Button variant="outline" disabled={busy} onClick={() => flow.runSimulation('all')}>
-                Run both sessions
+                Run every session
               </Button>
             </div>
           </div>
@@ -110,7 +113,7 @@ export function SimulateStep({ flow }: { flow: Flow }) {
       {!run && !busy && running.status !== 'error' && (
         <Card>
           <div className="ta-card__body ta-small ta-muted">
-            Pick a session and run it, or run both. You’ll see every decision the engine made, in order, with the
+            Pick a session and run it, or run every session. You’ll see every decision the engine made, in order, with the
             reason.
           </div>
         </Card>

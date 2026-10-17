@@ -14,6 +14,8 @@ const toneFor: Record<string, PillTone> = {
   LOCAL_ONLY: 'neutral',
   BLOCK_ENTRY: 'blocked',
   TWO_CONSECUTIVE_LOSSES: 'blocked',
+  MAX_TRADES: 'blocked',
+  'TRACED IN PRISM': 'compliant',
   LOCKED: 'blocked',
   ALLOWED: 'compliant',
   COMPLIANT: 'compliant',

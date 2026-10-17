@@ -11,61 +11,64 @@ import { price, usd } from '../lib/format'
 const A = ({ on, children }: { on: boolean; children: ReactNode }) =>
   on ? <span className="ta-assume">{children}</span> : <>{children}</>
 
-function rules(s: StrategySpec, draft: boolean): [string, ReactNode][] {
+function rules(s: StrategySpec, fromText: (path: string) => boolean): [string, ReactNode][] {
   const tf = s.timeframes
+  const H = ({ path, children }: { path: string; children: ReactNode }) => <A on={fromText(path)}>{children}</A>
   return [
     [
       'TREND',
       <>
-        IF {tf.trend_minutes}m close &gt; SMA({s.trend.period}) AND SMA rising over {s.trend.slope_bars} bars
+        IF <H path="timeframes.trend_minutes">{tf.trend_minutes}m</H> close &gt; SMA(
+        <H path="trend.period">{s.trend.period}</H>) AND SMA rising over <H path="trend.slope_bars">{s.trend.slope_bars} bars</H>
       </>,
     ],
     [
       'ENTRY',
       <>
-        AND a {tf.entry_minutes}m bar pulls back within{' '}
-        <A on={draft}>
+        AND a <H path="timeframes.entry_minutes">{tf.entry_minutes}m</H> bar pulls back within{' '}
+        <H path="entry.tolerance_ticks">
           {s.entry.tolerance_ticks} ticks ({price(s.entry.tolerance_ticks * s.instrument.tick_size)})
-        </A>{' '}
-        of SMA({s.entry.ma_period}) and closes bullish (close &gt; open AND close &gt; SMA)
+        </H>{' '}
+        of SMA(<H path="entry.ma_period">{s.entry.ma_period}</H>) and closes bullish (close &gt; open AND close &gt; SMA)
         <br />
-        THEN buy {s.quantity_contracts} contracts at the trigger price. One entry per signal.
+        THEN buy <H path="quantity_contracts">{s.quantity_contracts} contracts</H> at the open of the next 1m bar.
+        One entry per signal.
       </>,
     ],
     [
       'STOP',
       <>
-        Lowest low of the last {s.stop.lookback_5m_bars} completed 5m bars minus{' '}
-        <A on={draft}>
+        Lowest low of the last <H path="stop.lookback_5m_bars">{s.stop.lookback_5m_bars}</H> completed 5m bars minus{' '}
+        <H path="stop.buffer_ticks">
           {s.stop.buffer_ticks} <Term term="Tick">ticks</Term>
-        </A>
+        </H>
         . Skip the trade if entry minus stop is zero or less.
       </>,
     ],
     [
       'TARGET',
       <>
-        Sell {s.exit.first_target_close_contracts} contract at entry +{' '}
-        <A on={draft}>
+        Sell <H path="exit.first_target_close_contracts">{s.exit.first_target_close_contracts} contract</H> at entry +{' '}
+        <H path="exit.target_r">
           {s.exit.target_r}
           <Term term="R">R</Term>
-        </A>
-        . The
-        other contract keeps the original stop and exits at that stop or at {s.session.cutoff_local} ET.
+        </H>
+        . The rest keeps the original stop and exits at that stop or at{' '}
+        <H path="session.cutoff_local">{s.session.cutoff_local} ET</H>.
       </>,
     ],
     [
       'RISK',
       <>
-        Max {s.risk.max_completed_trades_per_session} completed trades a session. After {s.risk.consecutive_loss_lock}{' '}
-        losing trades in a row, refuse new entries until the next session. Exits are always allowed. Nothing held
-        overnight.
+        Max <H path="risk.max_completed_trades_per_session">{s.risk.max_completed_trades_per_session} completed trades</H>{' '}
+        a session. After <H path="risk.consecutive_loss_lock">{s.risk.consecutive_loss_lock} losing trades in a row</H>,
+        refuse new entries until the next session. Exits are always allowed. Nothing held overnight.
       </>,
     ],
     [
       'FILLS',
       <>
-        Fills at the trigger price. If stop and target are both hit in one bar, the stop counts first. Fees $0,
+        Stops and targets fill at their price. If both are touched in one bar, the stop counts first. Fees $0,
         slippage $0.
       </>,
     ],
@@ -77,6 +80,8 @@ export function ApproveStep({ flow }: { flow: Flow }) {
   const spec = flow.approved?.spec ?? flow.gen.data.strategy
   const isApproved = flow.approved !== null
   const minRisk = spec.stop.buffer_ticks * spec.instrument.tick_value_usd * spec.quantity_contracts
+  const interpreted = new Set(flow.gen.data.interpreted_fields ?? [])
+  const fromText = (path: string) => interpreted.has(path)
 
   return (
     <div className="ta-section ta-narrow">
@@ -95,13 +100,19 @@ export function ApproveStep({ flow }: { flow: Flow }) {
       >
         <div className="ta-card__body ta-stack" style={{ gap: 'var(--space-4)' }}>
           <ul className="ta-rules">
-            {rules(spec, !isApproved).map(([k, v]) => (
+            {rules(spec, fromText).map(([k, v]) => (
               <li key={k}>
                 <span className="k">{k}</span>
                 <span>{v}</span>
               </li>
             ))}
           </ul>
+          {interpreted.size > 0 && (
+            <span className="ta-small ta-muted">
+              <span className="ta-assume">Highlighted</span> values came from your own words; the rest are demo
+              defaults.
+            </span>
+          )}
           <div className="ta-riskline">
             <span className="ta-label">Risk per trade</span>
             <strong>at least {usd(minRisk)}</strong>

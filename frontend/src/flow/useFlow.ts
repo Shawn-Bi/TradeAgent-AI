@@ -3,8 +3,6 @@ import { toast } from 'sonner'
 import { api, ApiError } from '../api'
 import type {
   AuditEvent,
-  ClarificationChoice,
-  ClarificationQuestion,
   FixtureId,
   GenerateScenariosResponse,
   GenerateStrategyResponse,
@@ -15,7 +13,7 @@ import type {
 import { signedUsd } from '../lib/format'
 import { summarize } from '../lib/summary'
 import { fixtureLabel, FIXTURES } from '../screens/fixtures'
-import { deepMerge, formToOverrides, specToForm, type PresetForm } from './form'
+import { formToOverrides, type PresetForm } from './form'
 
 export const STEPS = ['Preset', 'Generate', 'Approve', 'Scenario', 'Simulate', 'Audit'] as const
 export const SEED = 42
@@ -34,18 +32,14 @@ export const DEFAULT_FORM: PresetForm = {
 
 type Async<T> = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; data: T } | { status: 'error'; error: string }
 
-export interface Answered {
-  question: string
-  source_text: string
-  answer: string
-}
-
 export interface RunResult {
   fixture: FixtureId
   state: SimulationState
   events: AuditEvent[]
   report: SimulationReport
 }
+
+const newSessionId = () => `draft-${crypto.randomUUID().slice(0, 12)}`
 
 const errorText = (e: unknown) =>
   e instanceof ApiError ? `${e.message} (${e.code})` : e instanceof Error ? e.message : String(e)
@@ -55,9 +49,8 @@ export function useFlow() {
   const [reached, setReached] = useState(0)
   const [form, setForm] = useState<PresetForm>(DEFAULT_FORM)
   const [gen, setGen] = useState<Async<GenerateStrategyResponse>>({ status: 'idle' })
-  // The form as the user submitted it, before any clarification rewrote it. "Change answers" restores it.
-  const [submitted, setSubmitted] = useState<PresetForm>(DEFAULT_FORM)
-  const [answered, setAnswered] = useState<Answered[]>([])
+  // One PRISM session per drafting conversation: every regenerate after a clarification shares it.
+  const [sessionId, setSessionId] = useState(newSessionId)
   const [approved, setApproved] = useState<{ spec: StrategySpec; at: Date } | null>(null)
   const [approving, setApproving] = useState<Async<null>>({ status: 'idle' })
   const [scenarios, setScenarios] = useState<Async<GenerateScenariosResponse>>({ status: 'idle' })
@@ -74,7 +67,6 @@ export function useFlow() {
   /** Any rule change returns to DRAFT: approval, scenarios and runs belong to the old version. */
   const invalidate = useCallback(() => {
     setGen({ status: 'idle' })
-    setAnswered([])
     setApproved(null)
     setApproving({ status: 'idle' })
     setScenarios({ status: 'idle' })
@@ -83,7 +75,7 @@ export function useFlow() {
     setReached(0)
   }, [])
 
-  /** A new draft from a clarification answer: the old approval and runs no longer apply. */
+  /** A new draft from rewritten text: the old approval and runs no longer apply. */
   const resetDownstream = useCallback(() => {
     setApproved(null)
     setApproving({ status: 'idle' })
@@ -101,45 +93,38 @@ export function useFlow() {
     [invalidate],
   )
 
-  const requestStrategy = useCallback(async (f: PresetForm, extraOverrides: Record<string, unknown> = {}) => {
+  const requestStrategy = useCallback(async (f: PresetForm) => {
     setGen({ status: 'loading' })
     try {
       const data = await api.generateStrategy({
         template_id: TEMPLATE_ID,
-        overrides: deepMerge(formToOverrides(f), extraOverrides),
+        overrides: formToOverrides(f, DEFAULT_FORM),
         free_text: f.free_text,
+        session_id: sessionId,
       })
+      // The form keeps only what the user set; screens read the proposed strategy from the response.
       setGen({ status: 'ready', data })
-      // Keep the form in step with what the backend actually produced.
-      setForm(specToForm(data.strategy, f.free_text))
     } catch (e) {
       setGen({ status: 'error', error: errorText(e) })
     }
-  }, [])
+  }, [sessionId])
 
   const generate = useCallback(() => {
     invalidate()
-    setSubmitted(form)
     go(1)
     void requestStrategy(form)
   }, [form, go, invalidate, requestStrategy])
 
-  /** Resolving a question is another generate: the choice says which overrides to send and how to rewrite the text. */
-  const answer = useCallback(
-    (q: ClarificationQuestion, choice: ClarificationChoice) => {
-      const free_text = form.free_text.replace(q.source_text, choice.replacement_text).replace(/\s{2,}/g, ' ').trim()
-      setAnswered((a) => [...a, { question: q.question, source_text: q.source_text, answer: choice.label }])
+  /** Clarification questions are answered by rewriting the text and generating again (backend/API.md). */
+  const regenerate = useCallback(
+    (free_text: string) => {
+      const next = { ...form, free_text }
+      setForm(next)
       resetDownstream()
-      void requestStrategy({ ...form, free_text }, choice.overrides)
+      void requestStrategy(next)
     },
     [form, requestStrategy, resetDownstream],
   )
-
-  const changeAnswers = useCallback(() => {
-    setAnswered([])
-    resetDownstream()
-    void requestStrategy(submitted)
-  }, [submitted, requestStrategy, resetDownstream])
 
   const approve = useCallback(async () => {
     if (gen.status !== 'ready') return
@@ -216,7 +201,7 @@ export function useFlow() {
   /** Back to the demo defaults, as if starting fresh. */
   const startOver = useCallback(() => {
     setForm(DEFAULT_FORM)
-    setSubmitted(DEFAULT_FORM)
+    setSessionId(newSessionId())
     invalidate()
     go(0)
   }, [go, invalidate])
@@ -229,9 +214,8 @@ export function useFlow() {
     updateForm,
     gen,
     generate,
-    answered,
-    answer,
-    changeAnswers,
+    regenerate,
+    sessionId,
     approved,
     approving,
     approve,

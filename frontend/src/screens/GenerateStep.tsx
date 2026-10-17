@@ -1,119 +1,84 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Textarea } from '@/components/ui/textarea'
+import type { GenerateStrategyResponse } from '../api'
 import { Disclosure } from '../components/Disclosure'
-import type { ClarificationChoice, ClarificationQuestion } from '../api'
 import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
-import { price } from '../lib/format'
-import { parseWarning } from '../lib/warnings'
 
-const CUSTOM = '__custom__'
+/** Who wrote this draft, in plain words. Never call a preset result AI-generated. */
+function authorship(d: GenerateStrategyResponse): string {
+  const n = d.nicrron
+  if (d.generator === 'NICRRON' && n) {
+    const secs = n.latency_ms !== null ? ` · ${(n.latency_ms / 1000).toFixed(1)}s` : ''
+    return `Written by Nicrron (${n.model_used ?? n.model_requested ?? 'model'})${secs}${n.cached ? ' · cached' : ''}, then checked against the StrategySpec schema.`
+  }
+  if (n && (n.status === 'FAILED' || n.status === 'NOT_CONFIGURED'))
+    return `Built-in demo preset. Nicrron did not read your text: ${n.error_message ?? n.error_code}.`
+  return 'Built-in demo preset: no free text was given, so no AI model was called.'
+}
 
-function ClarificationPrompt({
-  q,
-  onAnswer,
-  onEditText,
-}: {
-  q: ClarificationQuestion
-  onAnswer: (choice: ClarificationChoice) => void
-  onEditText: () => void
-}) {
-  // Nothing is preselected: the user has to pick deliberately.
-  const [picked, setPicked] = useState<string | null>(null)
-  const [custom, setCustom] = useState('')
-  const customN = Number(custom)
-  const customOk =
-    q.custom !== undefined &&
-    custom.trim() !== '' &&
-    Number.isInteger(customN) &&
-    customN >= q.custom.min &&
-    customN <= q.custom.max
+function PrismPill({ d }: { d: GenerateStrategyResponse }) {
+  if (d.prism?.status === 'SENT') return <StatusPill value="TRACED IN PRISM" tone="compliant" />
+  if (d.prism?.status === 'FAILED') return <StatusPill value="LOCAL_ONLY" />
+  return null
+}
 
-  const choice: ClarificationChoice | null =
-    picked === CUSTOM && q.custom && customOk
-      ? {
-          label: `${customN} ticks (${price(customN * 0.001)} USD/MMBtu)`,
-          overrides: q.custom.field === 'stop.buffer_ticks' ? { stop: { buffer_ticks: customN } } : {},
-          replacement_text: q.source_text.replace(/\d+(?:\.\d+)?\s*(points?|pts?)/i, `${customN} ticks`),
-        }
-      : picked !== null && picked !== CUSTOM
-        ? (q.choices[Number(picked)] ?? null)
-        : null
-
+function RewriteRules({ questions, flow }: { questions: string[]; flow: Flow }) {
+  const [text, setText] = useState(flow.form.free_text)
   return (
     <div className="ta-clarify">
       <div className="ta-row justify-between">
-        <span className="ta-label">Clarification needed</span>
+        <span className="ta-label">
+          {questions.length === 1 ? '1 question' : `${questions.length} questions`} before you can approve
+        </span>
         <StatusPill value="OPEN" />
       </div>
-      <div>
-        You wrote <q>{q.source_text.replace(/[.!?]+$/, '')}</q>. {q.question}
-      </div>
-      <RadioGroup
-        value={picked ?? ''}
-        onValueChange={setPicked}
-        aria-label={q.question}
-        className="gap-2"
-      >
-        {q.choices.map((c, i) => (
-          <div key={c.label} className="ta-choice">
-            <RadioGroupItem value={String(i)} id={`q-${q.id}-${i}`} />
-            <Label htmlFor={`q-${q.id}-${i}`} className="cursor-pointer text-control font-normal text-ink normal-case">
-              {c.label}
-            </Label>
-          </div>
+      <ol className="m-0 flex flex-col gap-2 pl-5">
+        {questions.map((q) => (
+          <li key={q}>{q}</li>
         ))}
-        {q.custom && (
-          <div className="ta-choice flex-wrap">
-            <RadioGroupItem value={CUSTOM} id={`q-${q.id}-custom`} />
-            <Label htmlFor={`q-${q.id}-custom`} className="cursor-pointer text-control font-normal text-ink normal-case">
-              Something else:
-            </Label>
-            <Input
-              className="w-24 font-mono"
-              type="number"
-              inputMode="numeric"
-              min={q.custom.min}
-              max={q.custom.max}
-              value={custom}
-              aria-label={`Number of ${q.custom.unit}`}
-              onFocus={() => setPicked(CUSTOM)}
-              onChange={(e) => setCustom(e.target.value)}
-            />
-            <span className="text-control">{q.custom.unit}</span>
-          </div>
-        )}
-      </RadioGroup>
+      </ol>
+      <div className="ta-field">
+        <Label htmlFor="rewrite">Your rules, rewritten to answer the questions</Label>
+        <Textarea id="rewrite" value={text} onChange={(e) => setText(e.target.value)} className="bg-card" />
+        <span className="ta-hint" style={{ minHeight: 0 }}>
+          Say it exactly: “stop 6 ticks below the swing low”, “take 1 contract off at 1.5R”. Remove anything this
+          version can’t do.
+        </span>
+      </div>
       <div className="ta-row">
-        <Button disabled={choice === null} onClick={() => choice && onAnswer(choice)}>
-          Use this answer
+        <Button disabled={!text.trim() || text === flow.form.free_text} onClick={() => flow.regenerate(text)}>
+          Generate again
         </Button>
-        <Button variant="link" onClick={onEditText}>
-          Edit my text instead
+        <Button variant="link" onClick={() => flow.regenerate('')}>
+          Clear my text and use the demo preset
         </Button>
-        {picked === CUSTOM && !customOk && q.custom && (
-          <span className="ta-small text-blocked">
-            Enter a whole number of {q.custom.unit} from {q.custom.min} to {q.custom.max}.
-          </span>
-        )}
       </div>
     </div>
   )
 }
 
 export function GenerateStep({ flow }: { flow: Flow }) {
-  const { gen, answered } = flow
+  const { gen } = flow
+  const head = (
+    <StepHead
+      title="Check the proposed strategy"
+      sub="Read the summary and answer any questions. Next you'll see the exact rules before anything runs."
+    />
+  )
 
   if (gen.status === 'idle' || gen.status === 'loading') {
     return (
       <div className="ta-section ta-narrow">
-        <StepHead title="Writing out your strategy" sub="Turning your settings and notes into exact rules." />
+        {head}
         <Card>
-          <Working label="Generate" />
+          <Working label={flow.form.free_text.trim() ? 'Nicrron is reading your rules' : 'Generate'} />
+          {flow.form.free_text.trim() && (
+            <p className="m-0 px-4 pb-4 ta-small ta-muted">This usually takes a few seconds and can take up to a minute.</p>
+          )}
         </Card>
       </div>
     )
@@ -121,107 +86,112 @@ export function GenerateStep({ flow }: { flow: Flow }) {
   if (gen.status === 'error') {
     return (
       <div className="ta-section ta-narrow">
-        <StepHead title="Writing out your strategy" sub="Turning your settings and notes into exact rules." />
-        <ErrorNote message={gen.error} onRetry={flow.generate} />
+        {head}
+        <ErrorNote message={gen.error} onRetry={() => flow.regenerate(flow.form.free_text)} />
         <Nav back={() => flow.go(0)} />
       </div>
     )
   }
 
-  const { strategy, strategy_summary, clarification_questions: questions, warnings } = gen.data
-  const parsed = warnings.map(parseWarning)
-  const fallback = parsed.find((w) => w.kind === 'PRESET_FALLBACK')
-  const interpretation = parsed.filter((w) => w.kind === 'APPLIED' || w.kind === 'NOT_APPLIED')
-  const notes = parsed.filter((w) => w.kind === 'NOTE')
-  const open = questions.length
+  const d = gen.data
+  const { strategy, strategy_summary, clarification_questions: questions, warnings } = d
+  const approvable = d.approvable ?? questions.length === 0
+  const notes = warnings.filter((w) => w.startsWith('Nicrron: ')).map((w) => w.slice('Nicrron: '.length))
+  const loosened = warnings.filter((w) => w.startsWith('RISK_LOOSENED'))
+  const other = warnings.filter((w) => !w.startsWith('Nicrron: ') && !w.startsWith('RISK_LOOSENED'))
+  const interpreted = d.interpreted_fields ?? []
+  const unsupported = d.unsupported_requirements ?? []
 
   return (
     <div className="ta-section ta-narrow">
-      <StepHead
-        title="Check the proposed strategy"
-        sub="Read the summary and answer any questions. Next you'll see the exact rules before anything runs."
-      />
+      {head}
 
-      <Card title="Proposed strategy" right={<StatusPill value={`DRAFT · v${strategy.version}`} tone="draft" />}>
+      <Card
+        title="Proposed strategy"
+        right={
+          <div className="ta-row">
+            <PrismPill d={d} />
+            <StatusPill value={`DRAFT · v${strategy.version}`} tone="draft" />
+          </div>
+        }
+      >
         <div className="ta-card__body ta-stack" style={{ gap: 'var(--space-2)' }}>
           <p className="m-0">{strategy_summary}</p>
-          {open > 0 && (
-            <span className="ta-small text-marker-ink">
-              Not final: answer the question below and this summary updates to match.
-            </span>
+          {!approvable && (
+            <span className="ta-small text-marker-ink">Not final: answer the questions below and generate again.</span>
           )}
-          <span className="ta-small ta-muted">
-            {fallback
-              ? `Written by: built-in preset. ${fallback.detail}`
-              : 'Written by: AI model, then checked against the StrategySpec schema.'}
-          </span>
+          <span className="ta-small ta-muted">{authorship(d)}</span>
         </div>
         <Disclosure label="Technical details: the StrategySpec JSON that will run">
           <pre className="ta-json">{JSON.stringify(strategy, null, 2)}</pre>
         </Disclosure>
       </Card>
 
-      {interpretation.length > 0 && (
+      {(interpreted.length > 0 || notes.length > 0 || unsupported.length > 0) && (
         <Card title="What your text became">
-          <div className="ta-card__body">
-            <ul className="ta-interp">
-              {interpretation.map((w) => (
-                <li key={`${w.kind}-${w.quote}`}>
-                  <StatusPill
-                    value={w.kind === 'APPLIED' ? 'BECAME A RULE' : 'NOT APPLIED'}
-                    tone={w.kind === 'APPLIED' ? 'compliant' : 'blocked'}
-                  />
-                  <span>
-                    <q className="ta-mono text-code">{w.quote}</q> <span className="ta-muted">· {w.detail}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      )}
-
-      {questions.map((q) => (
-        <ClarificationPrompt
-          key={`${strategy.version}-${q.id}`}
-          q={q}
-          onAnswer={(c) => flow.answer(q, c)}
-          onEditText={() => flow.go(0)}
-        />
-      ))}
-
-      {answered.length > 0 && (
-        <Card title="Your answers" right={<StatusPill value="ANSWERED" />}>
           <div className="ta-card__body ta-stack">
-            {answered.map((a) => (
-              <div key={a.source_text} className="ta-small">
-                <q className="ta-mono">{a.source_text.replace(/[.!?]+$/, '')}</q> → <strong>{a.answer}</strong>
-              </div>
-            ))}
-            <div>
-              <Button variant="outline" onClick={flow.changeAnswers}>
-                Change answers
-              </Button>
-            </div>
+            {(interpreted.length > 0 || notes.length > 0) && (
+              <ul className="ta-interp">
+                {notes.length > 0
+                  ? notes.map((n) => {
+                      // Only "field = value from '…'" notes set a value; the rest are explanations.
+                      const set = /^[a-z_]+(\.[a-z_0-9]+)*\s*=/.test(n)
+                      return (
+                        <li key={n}>
+                          <StatusPill value={set ? 'BECAME A RULE' : 'NOTE'} tone={set ? 'compliant' : 'neutral'} />
+                          <span>{n}</span>
+                        </li>
+                      )
+                    })
+                  : interpreted.map((f) => (
+                      <li key={f}>
+                        <StatusPill value="BECAME A RULE" tone="compliant" />
+                        <code>{f}</code>
+                      </li>
+                    ))}
+              </ul>
+            )}
+            {unsupported.length > 0 && (
+              <ul className="ta-interp">
+                {unsupported.map((u) => (
+                  <li key={u}>
+                    <StatusPill value="NOT APPLIED" tone="blocked" />
+                    <span>
+                      <q className="ta-mono text-code">{u}</q>{' '}
+                      <span className="ta-muted">· this version can’t do that, so it was left out</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <span className="ta-small ta-muted">Everything else is a demo default you can see on the next step.</span>
           </div>
         </Card>
       )}
 
-      {notes.length > 0 && (
+      {loosened.length > 0 && (
+        <Card tone="locked" title="Looser than the confirmed risk rules">
+          <ul className="ta-card__body m-0 flex flex-col gap-1 pl-9">
+            {loosened.map((w) => (
+              <li key={w}>{w.replace(/^RISK_LOOSENED:\s*/, '')}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {questions.length > 0 && <RewriteRules key={strategy.version} questions={questions} flow={flow} />}
+
+      {other.length > 0 && (
         <ul className="ta-small ta-muted m-0 pl-5">
-          {notes.map((n) => (
-            <li key={n.detail}>{n.detail}</li>
+          {other.map((n) => (
+            <li key={n}>{n}</li>
           ))}
         </ul>
       )}
 
       <Nav back={() => flow.go(0)}>
-        {open > 0 && (
-          <span className="ta-small ta-muted">
-            Answer {open === 1 ? 'the question' : `all ${open} questions`} to continue.
-          </span>
-        )}
-        <Button disabled={open > 0} onClick={() => flow.go(2)}>
+        {!approvable && <span className="ta-small ta-muted">Answer the questions to continue.</span>}
+        <Button disabled={!approvable} onClick={() => flow.go(2)}>
           Review exact rules
         </Button>
       </Nav>

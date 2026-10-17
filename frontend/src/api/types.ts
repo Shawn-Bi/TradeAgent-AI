@@ -1,8 +1,6 @@
-// Types for the frozen v1 contract: contracts/strategy.example.json and docs/PRD.md section 8.
-// Field names must match the backend exactly. Do not rename or add fields without agreeing with B.
-//
-// Where the PRD leaves a shape open (positions, completed_trades, clarification_questions) the
-// type below is provisional and marked PROVISIONAL. Confirm it with B before relying on it.
+// Types for the v1 contract (contracts/strategy.example.json, docs/PRD.md section 8) as implemented by
+// B's backend: backend/API.md. Frozen PRD fields come first in each type; fields marked "additive" are the
+// extras the backend documents, so the UI can rely on them.
 
 /** Widens a string-literal union while keeping editor autocomplete for the known values. */
 type Known<T extends string> = T | (string & {})
@@ -93,38 +91,53 @@ export interface HealthResponse {
 
 export interface GenerateStrategyRequest {
   template_id: Known<'ng-long-pullback-v1'>
+  /** Only values the user changed: explicit overrides win over Nicrron's reading of the free text. */
   overrides: Record<string, unknown>
   free_text: string
+  /** additive: one value per drafting conversation, so PRISM groups the drafts into one session. */
+  session_id?: string
 }
 
-/**
- * PROVISIONAL: the PRD shows `clarification_questions: []` without an item shape.
- * Proposed to B: each choice carries the exact overrides to send back and the text that replaces the
- * ambiguous phrase, so resolving a question is just another POST /api/strategies/generate.
- */
-export interface ClarificationChoice {
-  label: string
-  overrides: Record<string, unknown>
-  /** Replaces `source_text` in free_text. Empty string removes the phrase. */
-  replacement_text: string
+export type Generator = Known<'NICRRON' | 'PRESET_FALLBACK'>
+export type NicrronStatus = Known<'SUCCESS' | 'FAILED' | 'NOT_CONFIGURED' | 'NOT_REQUESTED'>
+
+export interface NicrronMeta {
+  status: NicrronStatus
+  model_requested: string | null
+  model_used: string | null
+  cached: boolean
+  latency_ms: number | null
+  error_code: string | null
+  error_message: string | null
+  http_status: number | null
+  retry_after: string | null
 }
 
-export interface ClarificationQuestion {
-  id: string
-  field: string | null
-  /** The user's own words, quoted back exactly. */
-  source_text: string
-  question: string
-  choices: ClarificationChoice[]
-  /** When set, the user may type their own value in this unit instead of picking a choice. */
-  custom?: { unit: 'ticks'; field: string; min: number; max: number }
+export interface PrismTraceMeta {
+  status: Known<'SENT' | 'FAILED' | 'NOT_CONFIGURED' | 'NOT_REQUESTED'>
+  trace_id: string | null
+  error: string | null
+  session_id: string
+  agent_id: string
 }
 
 export interface GenerateStrategyResponse {
   strategy: StrategySpec
-  clarification_questions: ClarificationQuestion[]
+  /** Plain-language questions. Resolving one means rewriting the free text and generating again. */
+  clarification_questions: string[]
+  /** "Nicrron: <field> from '<words>'" notes, "RISK_LOOSENED: …" and feature notes. */
   warnings: string[]
   strategy_summary: string
+  // additive
+  generator?: Generator
+  approvable?: boolean
+  nicrron?: NicrronMeta
+  /** Dotted StrategySpec paths whose values came from the trader's text. */
+  interpreted_fields?: string[]
+  /** Instructions StrategySpec v1 cannot express; each also appears as a clarification question. */
+  unsupported_requirements?: string[]
+  /** Present when the PRISM tracing branch is deployed. */
+  prism?: PrismTraceMeta
 }
 
 // ---------- POST /api/strategies/approve ----------
@@ -138,6 +151,7 @@ export interface ApproveStrategyResponse {
   strategy_id: string
   version: number
   approval_status: ApprovalStatus
+  approved_at?: string
 }
 
 // ---------- POST /api/scenarios/generate ----------
@@ -152,8 +166,14 @@ export interface Scenario {
   name: Known<'trend' | 'range' | 'adverse'>
   assumptions: string[]
   narrative: string
-  /** Only present when computed by the engine replay. Never fabricated; omitted if not wired. */
+  /** Computed by the engine on seeded synthetic candles. Hypothetical, never "expected return". */
   computed_pnl_usd?: number
+  // additive
+  completed_trades?: number
+  entries?: number
+  blocked_entries?: number
+  entry_locked?: boolean
+  lock_reason?: LockReason | null
 }
 
 export interface GenerateScenariosResponse {
@@ -161,11 +181,14 @@ export interface GenerateScenariosResponse {
   method: Known<'RULE_BASED_SYNTHETIC_REPLAY'>
   seed: number
   scenarios: Scenario[]
+  disclaimer?: string
 }
 
 // ---------- POST /api/simulations/start ----------
 
-export type FixtureId = Known<'standard' | 'two-loss-lock'>
+export type FixtureId = Known<
+  'two-loss-lock' | 'winning-reset' | 'cutoff' | 'ambiguous-bar' | 'trend-fail' | 'standard' | 'trend' | 'range' | 'adverse'
+>
 
 export interface StartSimulationRequest {
   strategy_id: string
@@ -181,30 +204,51 @@ export interface StartSimulationResponse {
   simulation_id: string
   status: SimulationStatus
   seed: number
+  fixture?: FixtureId
+  strategy_id?: string
+  version?: number
 }
 
 // ---------- GET /api/simulations/{simulation_id} ----------
 
 export type PrismStatus = 'CONNECTED' | 'LOCAL_ONLY'
+export type LockReason = Known<'TWO_CONSECUTIVE_LOSSES' | 'MAX_TRADES'>
+export type ExitReason = Known<'TARGET_PARTIAL_EXIT' | 'STOP_HIT' | 'AMBIGUOUS_BAR_STOP_FIRST' | 'CUTOFF_EXIT'>
 
-/** PROVISIONAL: the PRD shows `positions: []` without an item shape. */
-export interface Position {
-  position_id: string
+export interface TradeLeg {
+  exit_time: string
   contracts: number
+  exit_price: number
+  exit_reason: ExitReason
+  pnl_usd: number
+}
+
+export interface CompletedTrade {
+  position_id: string
+  realized_pnl_usd: number
+  // additive
+  status?: Known<'CLOSED'>
+  signal_bar_id?: string
+  entry_time?: string
   entry_price?: number
   stop_price?: number
   target_price?: number
+  initial_risk_ticks?: number
+  quantity_contracts?: number
+  open_contracts?: number
+  legs?: TradeLeg[]
+  result?: Known<'WIN' | 'LOSS' | 'BREAKEVEN'>
 }
 
-/** PROVISIONAL: the PRD shows `completed_trades: []` without an item shape. */
-export interface CompletedTrade {
+export interface Fill {
+  fill_id: string
+  timestamp: string
   position_id: string
+  side: Known<'BUY' | 'SELL'>
   contracts: number
-  entry_price: number
-  /** Volume-weighted exit across partial exits. */
-  exit_price: number
-  exit_reason: Known<'STOP' | 'TARGET_THEN_STOP' | 'TARGET_THEN_CUTOFF' | 'CUTOFF'>
-  realized_pnl_usd: number
+  price: number
+  action: EngineAction
+  decision_ref: string
 }
 
 export interface SimulationState {
@@ -212,20 +256,44 @@ export interface SimulationState {
   status: SimulationStatus
   account_id: string
   equity_usd: number
-  positions: Position[]
+  positions: unknown[]
   completed_trades: CompletedTrade[]
   consecutive_losses: number
   entry_locked: boolean
-  lock_reason: Known<'TWO_CONSECUTIVE_LOSSES'> | null
+  lock_reason: LockReason | null
   prism_status: PrismStatus
+  // additive
+  fixture?: FixtureId
+  fixture_description?: string
+  seed_affects_candles?: boolean
+  starting_equity_usd?: number
+  realized_pnl_usd?: number
+  completed_trade_count?: number
+  blocked_entry_count?: number
+  fills?: Fill[]
+  assumptions?: string[]
+  prism_trace_id?: string | null
+  prism_session_id?: string | null
 }
 
 // ---------- GET /api/simulations/{simulation_id}/events ----------
 
-/** OPEN_LONG, BLOCK_ENTRY and NO_TRADE come from the docs; the rest are PROVISIONAL, proposed to B. */
 export type EngineAction = Known<
-  'OPEN_LONG' | 'BLOCK_ENTRY' | 'NO_TRADE' | 'EXIT_ALL' | 'EXIT_PARTIAL' | 'EXIT_REMAINDER' | 'LOCK_ENTRIES' | 'NO_ACTION'
+  | 'WAIT'
+  | 'NO_TRADE'
+  | 'OPEN_LONG'
+  | 'BLOCK_ENTRY'
+  | 'EXIT_PARTIAL'
+  | 'EXIT_STOP'
+  | 'EXIT_CUTOFF'
+  | 'COUNT_LOSS'
+  | 'RESET_STREAK'
+  | 'LOCK_ENTRIES'
+  | 'CLOSE_SESSION'
 >
+
+/** DATA and SIGNAL are routine checks (~75 per session); the rest is what a trader reads. */
+export type EventCategory = Known<'DATA' | 'SIGNAL' | 'RISK_GATE' | 'EXECUTION' | 'RISK' | 'RISK_LOCK' | 'SESSION'>
 
 export interface AuditEvent {
   event_id: string
@@ -236,6 +304,13 @@ export interface AuditEvent {
   actual_action: EngineAction
   compliant: boolean
   reason: string
+  // additive
+  reason_code?: string
+  category?: EventCategory
+  eligible?: boolean
+  position_id?: string | null
+  price?: number | null
+  pnl_usd?: number | null
 }
 
 export interface SimulationEventsResponse {
@@ -253,6 +328,12 @@ export interface SimulationReport {
   execution_conformance: number | null
   violations: number
   disclaimer: string
+  // additive
+  metric?: string
+  blocked_entries?: number
+  completed_trades?: number
+  realized_pnl_usd?: number
+  prism_status?: PrismStatus
 }
 
 // ---------- Client interface shared by the mock and HTTP adapters ----------

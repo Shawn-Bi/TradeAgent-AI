@@ -10,15 +10,9 @@ import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
 import { price, signedUsd, usd } from '../lib/format'
 import { fixtureLabel, FIXTURES } from './fixtures'
-import { pnlTone, summarize } from '../lib/summary'
+import { pnlTone, summarize, tradeView } from '../lib/summary'
 import { DecisionLog, Kpi } from './results'
 
-const OUTCOME: Record<string, string> = {
-  STOP: 'Stopped out',
-  TARGET_THEN_STOP: 'Target, then stop',
-  TARGET_THEN_CUTOFF: 'Target, then cutoff',
-  CUTOFF: 'Closed at cutoff',
-}
 
 const sameRules = (a: object, b: object) => {
   const strip = (o: object) => JSON.stringify({ ...o, approval_status: undefined })
@@ -77,8 +71,10 @@ export function AuditStep({ flow }: { flow: Flow }) {
             <Card tone="locked" title="New entries locked" right={<StatusPill value={run.state.lock_reason ?? 'LOCKED'} tone="blocked" />}>
               <div className="ta-card__body ta-stack" style={{ gap: 'var(--space-2)' }}>
                 <span>
-                  {run.state.consecutive_losses} completed trades in a row closed at a loss, so the engine refused every new
-                  entry after that. {s.blocked > 0 && `${s.blocked} valid signal${s.blocked === 1 ? ' was' : 's were'} blocked and no order was opened.`}
+                  {run.state.lock_reason === 'MAX_TRADES'
+                    ? `The session's trade limit (${s.trades} completed trades) was reached, so the engine refused every new entry after that.`
+                    : `${run.state.consecutive_losses} completed trades in a row closed at a loss, so the engine refused every new entry after that.`}{' '}
+                  {s.blocked > 0 && `${s.blocked} valid signal${s.blocked === 1 ? ' was' : 's were'} blocked and no order was opened.`}
                 </span>
                 <span className="ta-small ta-muted">Exits that reduce risk stay allowed. The lock clears at the next session.</span>
               </div>
@@ -120,9 +116,20 @@ export function AuditStep({ flow }: { flow: Flow }) {
           </Card>
           <Card title="Where this audit is kept" right={<StatusPill value={run.state.prism_status} />}>
             <div className="ta-card__body ta-small">
-              {run.state.prism_status === 'CONNECTED'
-                ? 'Every decision is also traced to PRISM.'
-                : 'Kept in this session only. External tracing (PRISM) is not connected for this run.'}
+              {run.state.prism_status === 'CONNECTED' ? (
+                <>
+                  The Nicrron call that wrote version {flow.approved.spec.version} is traced in PRISM
+                  {run.state.prism_trace_id && (
+                    <>
+                      {' '}
+                      (trace <code>{run.state.prism_trace_id.slice(0, 8)}</code>)
+                    </>
+                  )}
+                  . The engine’s decisions below are kept in the local audit.
+                </>
+              ) : (
+                'Kept in the local audit. This version was not written by a traced AI call (for example the demo preset), so there is nothing in PRISM for it.'
+              )}
             </div>
             <Disclosure label="Technical details: report JSON">
               <pre className="ta-json">{JSON.stringify(r, null, 2)}</pre>
@@ -137,12 +144,13 @@ export function AuditStep({ flow }: { flow: Flow }) {
             <li key={t.position_id}>
               <div className="ta-row justify-between">
                 <span className="ta-mono">
-                  {t.position_id} · {OUTCOME[t.exit_reason] ?? t.exit_reason}
+                  {t.position_id} · {tradeView(t).outcome}
                 </span>
                 <span className={`ta-mono ${t.realized_pnl_usd < 0 ? 'ta-neg' : ''}`}>{signedUsd(t.realized_pnl_usd)}</span>
               </div>
               <span className="ta-mono text-meta ta-muted">
-                {t.contracts} contracts · entry {price(t.entry_price)} · avg exit {price(t.exit_price)}
+                {tradeView(t).contracts} contracts · entry {t.entry_price !== undefined ? price(t.entry_price) : '—'} · avg exit{' '}
+                {tradeView(t).avgExit !== null ? price(tradeView(t).avgExit!) : '—'}
               </span>
             </li>
           ))}
@@ -164,10 +172,12 @@ export function AuditStep({ flow }: { flow: Flow }) {
               {run.state.completed_trades.map((t) => (
                 <TableRow key={t.position_id}>
                   <TableCell className="font-mono">{t.position_id}</TableCell>
-                  <TableCell className="text-right font-mono">{price(t.entry_price)}</TableCell>
-                  <TableCell className="text-right font-mono">{price(t.exit_price)}</TableCell>
-                  <TableCell className="text-right font-mono">{t.contracts}</TableCell>
-                  <TableCell>{OUTCOME[t.exit_reason] ?? t.exit_reason}</TableCell>
+                  <TableCell className="text-right font-mono">{t.entry_price !== undefined ? price(t.entry_price) : '—'}</TableCell>
+                  <TableCell className="text-right font-mono">
+                    {tradeView(t).avgExit !== null ? price(tradeView(t).avgExit!) : '—'}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">{tradeView(t).contracts}</TableCell>
+                  <TableCell className="whitespace-normal">{tradeView(t).outcome}</TableCell>
                   <TableCell className={`text-right font-mono ${t.realized_pnl_usd < 0 ? 'text-blocked' : ''}`}>
                     {signedUsd(t.realized_pnl_usd)}
                   </TableCell>

@@ -3,7 +3,7 @@ import { Card, ErrorNote, Nav, StepHead, Working } from '../components/Layout'
 import { StatusPill } from '../components/StatusPill'
 import type { Flow } from '../flow/useFlow'
 import { signedUsd } from '../lib/format'
-import { FIXTURES } from './fixtures'
+import { scenarioFixture } from './fixtures'
 
 // Illustrative shapes only, so each card reads at a glance. They are drawn, not data.
 const SHAPES: Record<string, { pts: number[]; color: string }> = {
@@ -32,7 +32,7 @@ export function ScenarioStep({ flow }: { flow: Flow }) {
   const head = (
     <StepHead
       title="Hypothetical scenarios"
-      sub="How your approved rules are meant to behave in three made-up market shapes. These are explanations, not results: dollar figures come only from the simulation step."
+      sub="How your approved rules behave in three made-up market shapes. Dollar figures are hypothetical results on synthetic candles, never a backtest or a forecast."
       right={<StatusPill value="SYNTHETIC" />}
     />
   )
@@ -60,41 +60,51 @@ export function ScenarioStep({ flow }: { flow: Flow }) {
       <div className="ta-scen">
         {scenarios.data.scenarios.map((s) => {
           const shape = SHAPES[s.name] ?? SHAPES.range
-          const replay = FIXTURES.find((f) => f.scenario === s.name)
           return (
             <Card key={s.name} title={s.name.charAt(0).toUpperCase() + s.name.slice(1)}>
               <div className="ta-card__body ta-stack">
                 <Spark {...shape} />
                 <p className="m-0">{s.narrative}</p>
-                <ul className="ta-small ta-muted m-0 pl-5">
-                  {s.assumptions.map((a) => (
-                    <li key={a}>{a}</li>
-                  ))}
-                </ul>
-                <div className="ta-scope">
-                  {s.computed_pnl_usd !== undefined
-                    ? `Engine replay result: ${signedUsd(s.computed_pnl_usd)}`
-                    : 'Narrative only. No dollar result.'}{' '}
-                  {replay ? (
+                <details className="ta-small ta-muted">
+                  <summary className="cursor-pointer">Assumptions ({s.assumptions.length})</summary>
+                  <ul className="m-0 mt-2 pl-5">
+                    {s.assumptions.map((a) => (
+                      <li key={a}>{a}</li>
+                    ))}
+                  </ul>
+                </details>
+                <div className="ta-scope ta-stack" style={{ gap: 'var(--space-1)' }}>
+                  {s.computed_pnl_usd !== undefined ? (
+                    <span>
+                      Hypothetical engine result on these synthetic candles:{' '}
+                      <strong className={`ta-mono ${s.computed_pnl_usd < 0 ? 'text-blocked' : ''}`}>
+                        {signedUsd(s.computed_pnl_usd)}
+                      </strong>
+                      {s.completed_trades !== undefined &&
+                        ` · ${s.completed_trades} trades · ${s.blocked_entries ?? 0} entries blocked`}
+                    </span>
+                  ) : (
+                    <span>Narrative only. No dollar result.</span>
+                  )}
+                  <span>
                     <Button
                       variant="link"
                       className="h-auto px-0 text-left whitespace-normal"
                       onClick={() => {
-                        flow.setFixture(replay.id)
+                        flow.setFixture(scenarioFixture(s.name))
                         flow.go(4)
                       }}
                     >
-                      Replay this as “{replay.label}” →
+                      Replay it step by step →
                     </Button>
-                  ) : (
-                    'No replay for this shape yet.'
-                  )}
+                  </span>
                 </div>
               </div>
             </Card>
           )
         })}
       </div>
+      {scenarios.data.disclaimer && <p className="m-0 ta-small ta-muted">{scenarios.data.disclaimer}</p>}
       <Nav back={() => flow.go(2)}>
         <Button onClick={() => flow.go(4)}>Set up the simulation</Button>
       </Nav>

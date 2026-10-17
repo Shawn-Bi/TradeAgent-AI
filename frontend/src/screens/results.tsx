@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AuditEvent } from '../api'
+import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusPill } from '../components/StatusPill'
 import { Term } from '../components/Term'
 import type { RunResult } from '../flow/useFlow'
 import { hhmm } from '../lib/format'
+import { isRoutine } from '../lib/summary'
 
 // ---------- Session timeline ----------
-// The contract has no candle data, so this draws what the engine did over the session clock,
-// not a price chart. Trade spans are coloured by their realized result.
+// The API returns no candles, so this draws what the engine did over the session clock, not a price
+// chart. Trade spans run from entry to the last exit leg and are coloured by their realized result.
 
-const SESSION_START = 9 * 60 + 30
 const minutes = (ts: string) => {
   const [h, m] = hhmm(ts).split(':').map(Number)
   return h * 60 + m
@@ -37,22 +38,21 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
   const R = 16
   const H = 132
   const axisY = 70
-  const x = (t: number) => L + ((t - SESSION_START) / (end - SESSION_START)) * (W - L - R)
+  // Start an hour before the first decision that matters (the engine warms up on early candles).
+  const firstKey = run.events.filter((e) => !isRoutine(e) && e.category !== 'SESSION').map((e) => minutes(e.timestamp))
+  const start = Math.min(9 * 60 + 30, firstKey.length ? Math.floor(Math.min(...firstKey) / 60) * 60 - 60 : 9 * 60 + 30)
+  const x = (t: number) => L + ((Math.max(start, t) - start) / (end - start)) * (W - L - R)
 
-  // Pair entries with the exit that flattens them; partial exits are drawn on the span.
-  const spans: { from: number; to: number; pnl: number }[] = []
-  let open: number | null = null
-  for (const e of run.events) {
-    if (e.actual_action === 'OPEN_LONG') open = minutes(e.timestamp)
-    if ((e.actual_action === 'EXIT_ALL' || e.actual_action === 'EXIT_REMAINDER') && open !== null) {
-      const trade = run.state.completed_trades[spans.length]
-      spans.push({ from: open, to: minutes(e.timestamp), pnl: trade?.realized_pnl_usd ?? 0 })
-      open = null
-    }
-  }
+  const spans = run.state.completed_trades
+    .filter((t) => t.entry_time && t.legs?.length)
+    .map((t) => ({
+      from: minutes(t.entry_time!),
+      to: minutes(t.legs![t.legs!.length - 1].exit_time),
+      pnl: t.realized_pnl_usd,
+    }))
   const lock = run.events.find((e) => e.actual_action === 'LOCK_ENTRIES')
-  const hours = Array.from({ length: Math.floor((end - SESSION_START) / 60) + 1 }, (_, i) => SESSION_START + 30 + i * 60).filter(
-    (t) => t < end,
+  const hours = Array.from({ length: Math.floor((end - start) / 60) + 1 }, (_, i) => Math.ceil(start / 60) * 60 + i * 60).filter(
+    (t) => t > start && t < end,
   )
   const step = W < 520 ? 2 : 1
 
@@ -93,10 +93,10 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
           switch (e.actual_action) {
             case 'OPEN_LONG':
               return <circle key={k} cx={cx} cy={axisY} r={6} fill="var(--ledger)" stroke="var(--panel)" strokeWidth={2} />
-            case 'EXIT_ALL':
+            case 'EXIT_STOP':
               return <rect key={k} x={cx - 5} y={axisY - 5} width={10} height={10} fill="var(--blocked)" stroke="var(--panel)" strokeWidth={1.5} />
             case 'EXIT_PARTIAL':
-            case 'EXIT_REMAINDER':
+            case 'EXIT_CUTOFF':
               return <circle key={k} cx={cx} cy={axisY} r={6} fill="var(--panel)" stroke="var(--compliant)" strokeWidth={2.5} />
             case 'BLOCK_ENTRY':
               return (
@@ -109,20 +109,21 @@ export function SessionTimeline({ run, cutoff }: { run: RunResult; cutoff: strin
                 </g>
               )
             case 'NO_TRADE':
-              return <line key={k} x1={cx} x2={cx} y1={axisY - 8} y2={axisY + 8} stroke="var(--ink-muted)" strokeWidth={1.5} />
+              // ~75 routine checks per session: faint ticks, so they read as texture, not events.
+              return <line key={k} x1={cx} x2={cx} y1={axisY - 5} y2={axisY + 5} stroke="var(--ink-muted)" strokeWidth={1} opacity={0.35} />
             default:
               return null
           }
         })}
         {hours.map((t, i) =>
-          i % step === 0 && x(t) - x(SESSION_START) > 44 && x(end) - x(t) > 44 ? (
+          i % step === 0 && x(t) - x(start) > 44 && x(end) - x(t) > 44 ? (
             <text key={t} x={x(t)} y={H - 8} textAnchor="middle" className="ta-svg-axis" fill="var(--ink-muted)">
               {`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`}
             </text>
           ) : null,
         )}
         <text x={L} y={H - 8} className="ta-svg-axis" fill="var(--ink-muted)">
-          09:30
+          {`${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`}
         </text>
         <text x={W - R} y={H - 8} textAnchor="end" className="ta-svg-axis" fill="var(--ink-muted)">
           {cutoff}
@@ -146,11 +147,26 @@ function Result({ e }: { e: AuditEvent }) {
   return <StatusPill value={e.compliant ? 'COMPLIANT' : 'VIOLATION'} />
 }
 
-export function DecisionLog({ events }: { events: AuditEvent[] }) {
-  if (events.length === 0)
+export function DecisionLog({ events: all }: { events: AuditEvent[] }) {
+  const [showRoutine, setShowRoutine] = useState(false)
+  const routine = all.filter(isRoutine).length
+  const events = showRoutine ? all : all.filter((e) => !isRoutine(e))
+  if (all.length === 0)
     return <div className="ta-card__body ta-small ta-muted">No decisions were logged in this session.</div>
   return (
     <>
+      {routine > 0 && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-grid px-4 py-2 ta-small ta-muted">
+          <span>
+            {showRoutine
+              ? `Showing all ${all.length} decisions.`
+              : `Showing ${events.length} key decisions. ${routine} routine checks (rule not met, so no trade) are hidden.`}
+          </span>
+          <Button variant="link" className="h-auto px-0" onClick={() => setShowRoutine((v) => !v)}>
+            {showRoutine ? 'Hide routine checks' : 'Show routine checks'}
+          </Button>
+        </div>
+      )}
       <div className="ta-only-wide">
         <Table>
           <TableHeader>
