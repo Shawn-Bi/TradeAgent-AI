@@ -19,7 +19,7 @@ def _no_live_nicrron(tmp_path, monkeypatch):
 
     monkeypatch.setenv("NICRRON_ENV_FILE", str(tmp_path / "missing.env"))
     for var in ("NICRRON_API_KEY", "DEMO_ACCESS_TOKEN", "NICRRON_MAX_CALLS_PER_HOUR", "NICRRON_MAX_CONCURRENT",
-                "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST"):
+                "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST", "PROMPT_VERSION", "PRISM_KB_HOST"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("NICRRON_MAX_RETRIES", "0")
     nicrron_client.reset_budget()
@@ -73,15 +73,53 @@ def nicrron(monkeypatch):
     return mock
 
 
+KB_RESULTS = [
+    {"id": "chunk-1", "doc_id": "doc-units", "chunk_index": 0, "doc_name": "NG_SIM_UNITS.md",
+     "content": "Points are NOT ticks. 1 tick = 0.001 price units = $10 per contract.", "relevance_score": 0.31},
+    {"id": "chunk-2", "doc_id": "doc-fields", "chunk_index": 0, "doc_name": "STRATEGYSPEC_FIELD_GUIDE.md",
+     "content": "stop.buffer_ticks: int 0..100, stop = swing low minus this many ticks. Default 4.",
+     "relevance_score": 0.22},
+]
+
+
 class PrismMock:
-    """Mocked PRISM ``POST /api/traces`` endpoint."""
+    """Mocked PRISM endpoints: ``/api/traces``, ``/api/knowledge-base/search`` and ``/api/spans/ingest``.
+
+    ``calls`` holds trace requests only; ``kb_calls`` and ``span_calls`` the others.
+    """
 
     def __init__(self):
-        self.calls: list[httpx.Request] = []
+        self.requests: list[httpx.Request] = []
         self.status = 200
+        self.kb_status = 200
+        self.kb_results = copy.deepcopy(KB_RESULTS)
+        self.kb_exc = None
+
+    def _path(self, path: str) -> list[httpx.Request]:
+        return [r for r in self.requests if r.url.path == path]
+
+    @property
+    def calls(self) -> list[httpx.Request]:
+        return self._path("/api/traces")
+
+    @property
+    def kb_calls(self) -> list[httpx.Request]:
+        return self._path("/api/knowledge-base/search")
+
+    @property
+    def span_calls(self) -> list[httpx.Request]:
+        return self._path("/api/spans/ingest")
 
     def handler(self, request: httpx.Request) -> httpx.Response:
-        self.calls.append(request)
+        self.requests.append(request)
+        if request.url.path == "/api/knowledge-base/search":
+            if self.kb_exc is not None:
+                raise self.kb_exc(request)
+            if self.kb_status != 200:
+                return httpx.Response(self.kb_status, text="kb broke")
+            return httpx.Response(200, json={"results": self.kb_results, "method": "keyword_overlap"})
+        if request.url.path == "/api/spans/ingest":
+            return httpx.Response(200, json={"ingested": 1})
         if self.status != 200:
             return httpx.Response(self.status, text="upstream broke")
         return httpx.Response(200, json={"id": f"trace-{len(self.calls)}", "cost_usd": 0.0})
