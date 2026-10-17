@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ConformanceStrip } from '../components/ConformanceStrip'
 import { DecisionFunnel } from '../components/DecisionFunnel'
 import { Disclosure } from '../components/Disclosure'
 import { Term } from '../components/Term'
@@ -101,6 +102,7 @@ export function AuditStep({ flow }: { flow: Flow }) {
                   ? 'N/A · no decisions to check in this session.'
                   : `decisions where the engine did exactly what your rules required, including trades it correctly refused · ${r.violations} violation${r.violations === 1 ? '' : 's'}. This is not a win rate.`}
               </span>
+              <ConformanceStrip events={run.events} />
               <span className="ta-small ta-muted">
                 A <Term term="VIOLATION">violation</Term> would appear in orange, for example the engine opening a trade
                 while entries were locked.
