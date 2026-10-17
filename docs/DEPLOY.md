@@ -30,22 +30,23 @@ Decided by A and Shawn (B) on October 17, 2026 at 2:00 PM EDT. The service runs 
 
 The `PRISMTRACE_*` variables take effect only once PR #1 is merged. Frontend: no variables. `VITE_*` values are public, so no key ever goes there.
 
-## Still to build before the first deploy
+## Deploy pieces (built)
 
-None of this exists yet. Owner: whoever picks it up first; tell the other on Discord.
+1. **FastAPI serves the frontend.** `backend/main.py` mounts `frontend/dist` (or `FRONTEND_DIST`) at `/` after every API and docs route. The app has no client-side routes, so `index.html` at `/` is enough. Unknown `/api/*` paths keep the JSON `NOT_FOUND`. The demo token guard covers `/api/*` only.
+2. **Build and start.** `Dockerfile` (two stages: Node builds `frontend/dist`, then Python runs `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`). `railway.json` selects the Dockerfile and health-checks `/api/health`. `.dockerignore` keeps every `.env` out of the image.
+3. **Mock mode is visible.** A build with `VITE_API_MODE=mock` shows a permanent OFFLINE MOCK strip under the banner. The normal build compiles it out.
 
-1. **Serve the frontend from FastAPI.**
-   - Mount `frontend/dist` (built assets) after the API routes.
-   - Return `index.html` for any non-`/api` path, so the single-page app loads on a refresh.
-   - `/api/*` must keep its JSON 404s.
-2. **Build and start.** One service with both Python and Node: a `Dockerfile` or Nixpacks config. Roughly:
-   - build: `pip install -r backend/requirements.txt` and `cd frontend && npm ci && npm run build`
-   - start: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-3. **Make mock mode visible** (decision 8). Today the app shows "Built-in demo preset" per draft, but nothing on the page says the whole app is on the mock. Add a permanent label when `VITE_API_MODE=mock`, for example in the paper-trading banner.
-4. **Smoke test the Railway URL:**
+## Going live (Shawn)
+
+1. Merge #1, #2 and the deploy PR into `main`.
+2. In Railway: New Project → Deploy from GitHub repo → `Shawn-Bi/TradeAgent-AI`, branch `main`. Railway picks up `railway.json` and builds the Dockerfile.
+3. Variables: set the ones in the table above (A provides the keys). Leave `DEMO_ACCESS_TOKEN` unset.
+4. Settings → Networking → Generate Domain for the default `*.up.railway.app` address.
+5. Smoke test the URL:
    - `GET /api/health` returns `{"ok": true}`;
    - the full flow works: free text → clarifications → approve → two-loss lock → audit `CONNECTED`;
    - the PRISM setup doctor shows new live traces.
+6. Post the URL on Discord for the submission.
 
 ## Fallback: run locally in mock mode
 
@@ -55,7 +56,7 @@ npm ci
 VITE_API_MODE=mock npm run dev
 ```
 
-Open http://localhost:5173. Mock mode calls no model and never pretends to read free text, so demo with the preset (leave the free text empty). The real local stack also works offline from Railway, as long as Nicrron is reachable:
+Open http://localhost:5173. The OFFLINE MOCK strip under the banner confirms the mode. Mock mode calls no model and never pretends to read free text, so demo with the preset (leave the free text empty). The real local stack also works offline from Railway, as long as Nicrron is reachable:
 
 ```bash
 python -m venv .venv && .venv/bin/python -m pip install -r backend/requirements.txt
