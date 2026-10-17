@@ -111,6 +111,16 @@ export interface NicrronMeta {
   error_message: string | null
   http_status: number | null
   retry_after: string | null
+  /** `v1` (baseline) or `v2` (with Knowledge Base context); null without free text. */
+  prompt_version?: Known<'v1' | 'v2'> | null
+}
+
+/** PRISM Knowledge Base search run before the Nicrron call (prompt v2). */
+export interface KnowledgeBaseMeta {
+  status: Known<'USED' | 'NO_MATCH' | 'FAILED' | 'NOT_CONFIGURED' | 'NOT_REQUESTED'>
+  sources_used: string[]
+  error: string | null
+  snippets: { source: string; score: number; excerpt: string }[]
 }
 
 export interface PrismTraceMeta {
@@ -119,6 +129,8 @@ export interface PrismTraceMeta {
   error: string | null
   session_id: string
   agent_id: string
+  /** The knowledge_base_search span sent with the trace (prompt v2). */
+  context_span?: Known<'SENT' | 'FAILED'> | null
 }
 
 export interface GenerateStrategyResponse {
@@ -136,8 +148,8 @@ export interface GenerateStrategyResponse {
   interpreted_fields?: string[]
   /** Instructions StrategySpec v1 cannot express; each also appears as a clarification question. */
   unsupported_requirements?: string[]
-  /** Present when the PRISM tracing branch is deployed. */
   prism?: PrismTraceMeta
+  knowledge_base?: KnowledgeBaseMeta
 }
 
 // ---------- POST /api/strategies/approve ----------
@@ -311,6 +323,27 @@ export interface AuditEvent {
   position_id?: string | null
   price?: number | null
   pnl_usd?: number | null
+  signal_bar_id?: string | null
+  /** Gate results on an evaluated bar: trend filter, pullback entry, then the risk gate. */
+  trend_ok?: boolean | null
+  entry_ok?: boolean | null
+  candidate_action?: string | null
+  /** "PASS" or "BLOCKED:<reason>". */
+  risk_gate_result?: string | null
+  session_locked?: boolean | null
+  /** Bar data on SIGNAL events (one per completed 5m bar): enough for a close-price + SMA chart. */
+  details?: EventDetails | null
+}
+
+export interface EventDetails {
+  c15?: number
+  sma15?: number | null
+  sma15_prev?: number | null
+  bar5_open?: number
+  bar5_low?: number
+  bar5_close?: number
+  sma5?: number | null
+  tolerance_ticks?: number
 }
 
 export interface SimulationEventsResponse {
