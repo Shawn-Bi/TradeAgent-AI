@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "strategy_id": "ng-demo-v1",
+  "version": 1,
+  "instrument": {
+    "symbol": "NG_SIM",
+    "venue": "TradeAgent Paper Exchange",
+    "tick_size": 0.001,
+    "tick_value_usd": 10.0,
+    "currency": "USD",
+    "specification": "DEMO_ASSUMPTION_NOT_LIVE"
+  },
+  "account_id": "DEMO-NG-001",
+  "direction": "LONG_ONLY",
+  "timeframes": {
+    "trend_minutes": 15,
+    "entry_minutes": 5,
+    "refine_minutes": null
+  },
+  "trend": {
+    "ma_type": "SMA",
+    "period": 20,
+    "slope_bars": 2,
+    "require_close_above_ma": true,
+    "require_rising_ma": true
+  },
+  "entry": {
+    "type": "PULLBACK_HOLD_BULLISH",
+    "ma_type": "SMA",
+    "ma_period": 20,
+    "tolerance_ticks": 3,
+    "confirmation": "CLOSE_GT_OPEN_AND_CLOSE_GT_MA",
+    "one_entry_per_signal": true
+  },
+  "stop": {
+    "type": "SWING_LOW_BUFFER",
+    "lookback_5m_bars": 5,
+    "buffer_ticks": 4
+  },
+  "exit": {
+    "target_r": 1.2,
+    "first_target_close_contracts": 1,
+    "remaining_contracts_exit": "STOP_OR_SESSION_CUTOFF"
+  },
+  "quantity_contracts": 2,
+  "risk": {
+    "max_completed_trades_per_session": 3,
+    "consecutive_loss_lock": 2,
+    "stop_required": true,
+    "no_overnight": true
+  },
+  "session": {
+    "timezone": "America/New_York",
+    "demo_date": "2026-10-17",
+    "cutoff_local": "16:00",
+    "demo_only": true
+  },
+  "approval_status": "DRAFT",
+  "simulation_only": true
+}
