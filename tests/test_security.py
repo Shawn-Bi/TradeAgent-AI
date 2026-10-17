@@ -5,6 +5,8 @@ import pytest
 
 from backend import nicrron_client
 
+from .conftest import FAKE_KEY, FAKE_PRISM_KEY
+
 TOKEN = "demo-token-for-tests-0123456789abcdef"
 ALLOWED = "http://localhost:5173"
 PROTECTED = [
@@ -131,3 +133,25 @@ def test_missing_key_does_not_consume_budget(client, monkeypatch):
 def test_token_never_echoed(client, guarded):
     r = client.post("/api/strategies/generate", json={}, headers={"X-Demo-Token": TOKEN + "x"})
     assert TOKEN not in r.text and TOKEN not in json.dumps(dict(r.headers))
+
+
+def test_startup_status_shows_statuses_never_secrets(monkeypatch):
+    from backend.main import startup_status
+
+    monkeypatch.setenv("NICRRON_API_KEY", FAKE_KEY)
+    monkeypatch.setenv("PRISMTRACE_PROJECT_ID", "00000000-0000-0000-0000-000000000001")
+    monkeypatch.setenv("PRISMTRACE_API_KEY", FAKE_PRISM_KEY)
+    monkeypatch.setenv("DEMO_ACCESS_TOKEN", "demo-secret-token-42")
+    line = startup_status()
+    assert "Nicrron adapter status: CONFIGURED" in line and "demo token guard: ON" in line
+    assert "PRISM tracing: CONFIGURED" in line and "prompt version: v2" in line and "frontend: " in line
+    for secret in (FAKE_KEY, FAKE_PRISM_KEY, "demo-secret-token-42", "00000000-0000-0000-0000-000000000001"):
+        assert secret not in line
+
+
+def test_startup_status_when_nothing_configured():
+    from backend.main import startup_status
+
+    line = startup_status()
+    assert "Nicrron adapter status: NOT_CONFIGURED" in line and "demo token guard: OFF" in line
+    assert "PRISM tracing: NOT_CONFIGURED" in line

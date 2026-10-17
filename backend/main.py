@@ -203,6 +203,21 @@ def reset_state() -> None:
         _simulations.clear()
 
 
-log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM tracing: %s; frontend: %s",
-         nicrron_client.status(), "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF", prism_client.status(),
-         FRONTEND_DIST if (FRONTEND_DIST / "index.html").is_file() else "not built")
+def startup_status() -> str:
+    """One line of statuses for the deploy logs. Never includes key or token values."""
+    return (f"Nicrron adapter status: {nicrron_client.status()}; "
+            f"demo token guard: {'ON' if setting('DEMO_ACCESS_TOKEN') else 'OFF'}; "
+            f"PRISM tracing: {prism_client.status()}; prompt version: {nicrron_client.prompt_version()}; "
+            f"frontend: {'served' if (FRONTEND_DIST / 'index.html').is_file() else 'not built'}")
+
+
+# Nothing configures logging for the app (uvicorn only sets up its own loggers), so the startup line gets
+# its own handler to reach the platform logs, without touching the root logger anyone else relies on.
+startup_log = logging.getLogger("tradeagent.startup")
+if not startup_log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter("%(levelname)s:     %(message)s"))
+    startup_log.addHandler(_handler)
+    startup_log.setLevel(logging.INFO)
+    startup_log.propagate = False
+startup_log.info(startup_status())
