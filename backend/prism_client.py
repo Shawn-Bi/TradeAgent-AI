@@ -26,7 +26,7 @@ from .nicrron_client import _redact
 
 DEFAULT_HOST = "https://prism.blockconvey.com"
 AGENT_ID = "tradeagent-strategy-translator"
-TIMEOUT_S = 5.0
+TRACE_TIMEOUT_S = 3.0  # trace + span run after Nicrron in the request; PRISM must never noticeably slow drafting
 
 _transport: httpx.BaseTransport | None = None  # tests inject httpx.MockTransport here
 
@@ -49,7 +49,7 @@ def transport_kwargs() -> dict:
 
 
 def _client() -> httpx.Client:
-    return httpx.Client(timeout=TIMEOUT_S, **transport_kwargs())
+    return httpx.Client(timeout=TRACE_TIMEOUT_S, **transport_kwargs())
 
 
 def send_trace(*, session_id: str, model: str | None, input_messages: list[dict], output_message: str,
