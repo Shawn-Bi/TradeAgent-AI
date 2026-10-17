@@ -2,6 +2,7 @@
 import json
 
 import httpx
+import pytest
 
 from backend import kb_client, nicrron_client, prism_client
 
@@ -86,8 +87,19 @@ def test_kb_timeout_never_blocks_generation(client, nicrron, prism):
     body = _generate(client)
     assert body["generator"] == "NICRRON" and body["approvable"] is True
     assert body["knowledge_base"]["status"] == "FAILED"
-    assert prism.kb_calls[0].extensions["timeout"]["read"] == kb_client.SEARCH_TIMEOUT_S
-    assert prism.calls[0].extensions["timeout"]["read"] == prism_client.TRACE_TIMEOUT_S
+    assert prism.kb_calls[0].extensions["timeout"]["read"] == prism_client.DEFAULT_TIMEOUT_S == 5.0
+    assert prism.calls[0].extensions["timeout"]["read"] == 5.0
+
+
+@pytest.mark.parametrize("value, expected", [("12", 12.0), ("2.5", 2.5), ("abc", 5.0), ("0", 5.0), ("90", 5.0), ("", 5.0)])
+def test_prism_timeout_from_env(client, nicrron, prism, monkeypatch, value, expected):
+    monkeypatch.setenv("PRISM_TIMEOUT_SECONDS", value)
+    assert prism_client.timeout_s() == expected
+    nicrron.reply(GOOD)
+    _generate(client)
+    # KB search, trace and span all use the configured limit
+    assert prism.kb_calls[0].extensions["timeout"]["read"] == expected
+    assert {c.extensions["timeout"]["read"] for c in prism.calls} == {expected}
 
 
 def test_kb_no_match_is_still_a_traced_retrieval(client, nicrron, prism):

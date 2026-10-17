@@ -21,7 +21,6 @@ from .nicrron_client import _redact
 
 DEFAULT_HOST = "https://api.prism.blockconvey.com"
 LIMIT = 3
-SEARCH_TIMEOUT_S = 2.5  # runs before Nicrron on every draft; PRISM must never noticeably slow drafting
 MAX_QUERY_CHARS = 1000
 MAX_SNIPPET_CHARS = 2500
 
@@ -41,7 +40,8 @@ def search(query: str, *, limit: int = LIMIT) -> dict:
             "query": query[:MAX_QUERY_CHARS], "limit": limit}
     started = time.monotonic()
     try:
-        with httpx.Client(timeout=SEARCH_TIMEOUT_S, **prism_client.transport_kwargs()) as client:
+        # Same per-call limit as tracing (prism_client.timeout_s); a slow search falls back to no context.
+        with httpx.Client(timeout=prism_client.timeout_s(), **prism_client.transport_kwargs()) as client:
             resp = client.post(f"{host}/api/knowledge-base/search", json=body,
                                headers={"X-PRISMtrace-Key": cfg["api_key"]})
         out["latency_ms"] = int((time.monotonic() - started) * 1000)
