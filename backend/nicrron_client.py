@@ -26,6 +26,7 @@ from openai import OpenAI
 
 DEFAULT_BASE_URL = "https://api.nicrron.ai/v1"
 DEFAULT_MODEL = "nicrron/auto"
+PROMPT_VERSION = "v1"  # sent to PRISM with every trace so v1/v2 runs can be scored side by side
 BACKEND_DIR = Path(__file__).resolve().parent
 DEFAULT_ENV_FILES = (BACKEND_DIR / ".env", BACKEND_DIR.parent / ".env")
 KEY_HELP = (

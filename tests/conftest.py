@@ -15,14 +15,18 @@ def _no_live_nicrron(tmp_path, monkeypatch):
     """Tests never read the real backend/.env and never reach the network."""
     from backend import nicrron_client
 
+    from backend import prism_client
+
     monkeypatch.setenv("NICRRON_ENV_FILE", str(tmp_path / "missing.env"))
-    monkeypatch.delenv("NICRRON_API_KEY", raising=False)
+    for name in ("NICRRON_API_KEY", "PRISMTRACE_PROJECT_ID", "PRISMTRACE_API_KEY", "PRISMTRACE_HOST"):
+        monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("NICRRON_MAX_RETRIES", "0")
 
     def guard(request):
-        raise AssertionError(f"unexpected live Nicrron request to {request.url}")
+        raise AssertionError(f"unexpected live request to {request.url}")
 
     monkeypatch.setattr(nicrron_client, "_transport", httpx.MockTransport(guard))
+    monkeypatch.setattr(prism_client, "_transport", httpx.MockTransport(guard))
 
 
 class NicrronMock:
@@ -64,6 +68,37 @@ def nicrron(monkeypatch):
     mock = NicrronMock()
     monkeypatch.setenv("NICRRON_API_KEY", FAKE_KEY)
     monkeypatch.setattr(nicrron_client, "_transport", httpx.MockTransport(mock.handler))
+    return mock
+
+
+class PrismMock:
+    """Mocked PRISM ``POST /api/traces`` endpoint."""
+
+    def __init__(self):
+        self.calls: list[httpx.Request] = []
+        self.status = 200
+
+    def handler(self, request: httpx.Request) -> httpx.Response:
+        self.calls.append(request)
+        if self.status != 200:
+            return httpx.Response(self.status, text="upstream broke")
+        return httpx.Response(200, json={"id": f"trace-{len(self.calls)}", "cost_usd": 0.0})
+
+    def bodies(self) -> list[dict]:
+        return [json.loads(c.content) for c in self.calls]
+
+
+FAKE_PRISM_KEY = "pt-sk-test-0123456789"
+
+
+@pytest.fixture
+def prism(monkeypatch):
+    from backend import prism_client
+
+    mock = PrismMock()
+    monkeypatch.setenv("PRISMTRACE_PROJECT_ID", "00000000-0000-0000-0000-000000000001")
+    monkeypatch.setenv("PRISMTRACE_API_KEY", FAKE_PRISM_KEY)
+    monkeypatch.setattr(prism_client, "_transport", httpx.MockTransport(mock.handler))
     return mock
 
 

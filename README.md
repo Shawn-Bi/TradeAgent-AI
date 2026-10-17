@@ -81,7 +81,7 @@ curl -s localhost:8000/api/simulations/sim-42-two-loss-lock-v1/report
 
 Without a key, or when Nicrron fails, free text returns the labeled demo preset (`generator: "PRESET_FALLBACK"`, `nicrron.status` `FAILED`/`NOT_CONFIGURED`), which cannot be approved; empty free text gives the approvable demo preset. Tests never call the real API.
 
-**Honest status:** PRISM is not integrated. State is in memory (restart → generate/approve again). Demo P&L values come from crafted synthetic candles (e.g. −$260 per loss), not the illustrative −$80/−$100 in `two_loss_lock.fixture.json`, which is replayed separately in tests through the same risk gate.
+**Honest status:** PRISM tracing covers the Nicrron strategy-translation step (set `PRISMTRACE_*` in `backend/.env`; see `backend/API.md`). Knowledge Base retrieval, root-cause analysis and the v1/v2 evaluator are not built yet. State is in memory (restart → generate/approve again). Demo P&L values come from crafted synthetic candles (e.g. −$260 per loss), not the illustrative −$80/−$100 in `two_loss_lock.fixture.json`, which is replayed separately in tests through the same risk gate.
 
 ## Demo proof
 `two-loss-lock` deterministic fixture → two completed losing positions → third entry refused (`BLOCK_ENTRY`) → audit shows expected and actual actions → no order opened. PRISM status must reflect reality (`LOCAL_ONLY` when disconnected).

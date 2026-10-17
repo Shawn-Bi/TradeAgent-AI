@@ -6,12 +6,13 @@ import hashlib
 import json
 import re
 import threading
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from pydantic import ValidationError
 
-from . import audit, nicrron_client
+from . import audit, nicrron_client, prism_client
 from .errors import ApiError
 from .schemas import GenerateRequest, StrategySpec
 
@@ -266,11 +267,14 @@ class StrategyStore:
                 "latency_ms": None, "error_code": None, "error_message": None, "http_status": None,
                 "retry_after": None}
         text = req.free_text.strip()
+        session_id = req.session_id or f"draft-{uuid.uuid4().hex[:12]}"
+        trace_error = None
         if text:
             meta["model_requested"] = nicrron_client.config()["model"]
             try:
                 ai = nicrron_client.translate(text, base)
             except nicrron_client.NicrronError as exc:
+                trace_error = exc
                 meta.update(status="NOT_CONFIGURED" if exc.code == "NICRRON_NOT_CONFIGURED" else "FAILED",
                             error_code=exc.code, error_message=exc.message, http_status=exc.http_status,
                             retry_after=exc.retry_after)
@@ -303,13 +307,39 @@ class StrategyStore:
 
         with self._lock:
             rec = self._store(merged, questions, warnings, generator)
+        prism = {"status": "NOT_REQUESTED", "trace_id": None, "error": None}
+        if text:  # one trace per model call; the preset path makes no model call
+            prism = prism_client.send_trace(
+                session_id=session_id,
+                model=meta["model_used"] or meta["model_requested"],
+                input_messages=nicrron_client.build_messages(text, base),
+                output_message=raw_content if raw_content is not None
+                else f"[NICRRON ERROR {trace_error.code}] {trace_error.message}",
+                latency_ms=meta["latency_ms"],
+                metadata={
+                    "app": "tradeagent-ai", "prompt_version": nicrron_client.PROMPT_VERSION,
+                    "strategy_id": rec["spec"]["strategy_id"], "strategy_version": rec["spec"]["version"],
+                    "generator": generator, "nicrron_status": meta["status"], "nicrron_error": meta["error_code"],
+                    "cached": meta["cached"], "interpreted_fields": sorted(interpreted),
+                    "clarification_questions": len(rec["clarification_questions"]),
+                    "unsupported_requirements": len(unsupported),
+                    "approvable": not rec["clarification_questions"],
+                },
+            )
+            with self._lock:
+                stored = self._records[(rec["spec"]["strategy_id"], rec["spec"]["version"])]
+                if prism["status"] == "SENT" or "prism" not in stored:
+                    stored["prism"] = {**prism, "session_id": session_id}
+        prism = {**prism, "session_id": session_id, "agent_id": prism_client.AGENT_ID}
         audit.record("STRATEGY_GENERATED", strategy_id=rec["spec"]["strategy_id"], version=rec["spec"]["version"],
                      generator=generator, nicrron_status=meta["status"], nicrron_error=meta["error_code"],
                      model_used=meta["model_used"], interpreted_fields=interpreted,
                      clarification_questions=len(rec["clarification_questions"]), free_text=text or None,
-                     nicrron_raw_output=raw_content)
+                     nicrron_raw_output=raw_content, prism_status=prism["status"], prism_trace_id=prism["trace_id"],
+                     prism_error=prism["error"], session_id=session_id)
         return {**self._response(rec), "warnings": warnings, "nicrron": meta,
-                "interpreted_fields": sorted(interpreted), "unsupported_requirements": unsupported}
+                "interpreted_fields": sorted(interpreted), "unsupported_requirements": unsupported,
+                "prism": prism}
 
     def _store(self, spec: dict, questions, warnings, generator) -> dict:
         sid = spec["strategy_id"]
@@ -365,6 +395,12 @@ class StrategyStore:
                 audit.record("STRATEGY_APPROVED", strategy_id=strategy_id, version=version)
             return {"strategy_id": strategy_id, "version": version, "approval_status": "APPROVED",
                     "approved_at": rec["approved_at"]}
+
+    def prism_trace(self, strategy_id: str, version: int) -> dict | None:
+        """The PRISM trace of the model call that wrote this version, if PRISM accepted one."""
+        rec = self._records.get((strategy_id, version)) or {}
+        prism = rec.get("prism")
+        return copy.deepcopy(prism) if prism and prism["status"] == "SENT" else None
 
     def approved_spec(self, strategy_id: str, version: int) -> dict:
         rec = self.get(strategy_id, version)
