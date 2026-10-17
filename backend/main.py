@@ -8,11 +8,13 @@ from __future__ import annotations
 import hmac
 import logging
 import threading
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from simulation import FIXTURES, FixtureError, get_report, run_simulation
@@ -45,7 +47,8 @@ async def _demo_token_guard(request: Request, call_next):
         path = request.url.path
         if path in DOCS_PATHS:
             return JSONResponse(envelope("NOT_FOUND", "Not Found"), status_code=404)
-        if path not in OPEN_PATHS:
+        # Only the API is guarded: the built frontend is public static files (one-address deploy).
+        if path.startswith("/api/") and path not in OPEN_PATHS:
             supplied = request.headers.get(TOKEN_HEADER, "")
             if not hmac.compare_digest(supplied.encode(), token.encode()):
                 return JSONResponse(envelope("UNAUTHORIZED", f"Missing or invalid {TOKEN_HEADER} header",
@@ -178,6 +181,21 @@ def get_sim_report(simulation_id: str):
     return _get_sim(simulation_id)["report"]
 
 
+# ---- built frontend (one-address deploy, docs/DEPLOY.md) ------------------------
+
+@app.api_route("/api/{rest:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], include_in_schema=False)
+def _api_not_found(rest: str):
+    """Unknown /api paths keep the JSON error envelope instead of falling through to the frontend."""
+    raise ApiError(404, "NOT_FOUND", f"No API route /api/{rest}")
+
+
+FRONTEND_DIST = Path(setting("FRONTEND_DIST") or Path(__file__).resolve().parent.parent / "frontend" / "dist")
+if (FRONTEND_DIST / "index.html").is_file():
+    # Mounted last, so every API and docs route above wins. The app has no client-side routes,
+    # so serving index.html at "/" (html=True) is all the single page needs.
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
+
+
 def reset_state() -> None:
     """Test helper: clear in-memory strategies and simulations."""
     strategies.reset()
@@ -185,5 +203,6 @@ def reset_state() -> None:
         _simulations.clear()
 
 
-log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM tracing: %s", nicrron_client.status(),
-         "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF", prism_client.status())
+log.info("Nicrron adapter status: %s; demo token guard: %s; PRISM tracing: %s; frontend: %s",
+         nicrron_client.status(), "ON" if setting("DEMO_ACCESS_TOKEN") else "OFF", prism_client.status(),
+         FRONTEND_DIST if (FRONTEND_DIST / "index.html").is_file() else "not built")
