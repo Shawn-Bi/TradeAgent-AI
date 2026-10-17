@@ -4,9 +4,9 @@ TradeAgent AI is a paper-trading demo for the Money Talks 2 hackathon (October 1
 
 The model only proposes; the engine enforces. Nicrron never places an order, approves a strategy or loosens a risk rule.
 
-[![TradeAgent AI demo video: Your rules. Enforced.](docs/media/tradeagent-demo-poster.jpg)](docs/media/tradeagent-demo.mp4)
+https://github.com/user-attachments/assets/48948d3d-3acd-40f7-800c-7bad452f3bed
 
-**Demo video:** [Watch the 80-second demo](docs/media/tradeagent-demo.mp4). The opening parodies AI-trading-bot ads with stock clips. Every app screen after it was captured from the real app running locally, with Nicrron and PRISM connected, on synthetic data.  
+**Demo video (80 seconds):** the opening parodies AI-trading-bot ads with stock clips. Every app screen after it was captured from the real app running locally, with Nicrron and PRISM connected, on synthetic data. A copy is also in [`docs/media/tradeagent-demo.mp4`](docs/media/tradeagent-demo.mp4).  
 **Source:** https://github.com/Shawn-Bi/TradeAgent-AI
 
 ## Demo flow
