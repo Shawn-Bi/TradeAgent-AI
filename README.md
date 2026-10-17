@@ -7,6 +7,7 @@ The model only proposes; the engine enforces. Nicrron never places an order, app
 https://github.com/user-attachments/assets/48948d3d-3acd-40f7-800c-7bad452f3bed
 
 **Demo video (80 seconds):** the opening parodies AI-trading-bot ads with stock clips. Every app screen after it was captured from the real app running locally, with Nicrron and PRISM connected, on synthetic data. A copy is also in [`docs/media/tradeagent-demo.mp4`](docs/media/tradeagent-demo.mp4).  
+**Live demo:** https://tradeagent-ai.onrender.com  
 **Source:** https://github.com/Shawn-Bi/TradeAgent-AI
 
 ## Demo flow
@@ -77,7 +78,7 @@ Open [http://localhost:5173](http://localhost:5173). Vite proxies `/api` to port
 
 `.venv/bin/python -m backend.nicrron_smoke` makes one real Nicrron request and prints `RESULT: REAL_API_VERIFIED`, or exits without a request when the key is missing. For an offline backup with no backend, run `VITE_API_MODE=mock npm run dev` in `frontend/`; a permanent OFFLINE MOCK strip shows the mode.
 
-**Deployment.** The `Dockerfile` builds the frontend and runs FastAPI, which serves `/api/*` and the frontend on one address, so no key or token reaches the browser. Keys are set as the host's environment variables. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+**Deployment.** The live demo runs on Render at https://tradeagent-ai.onrender.com as one service: FastAPI serves `/api/*` and the built frontend on one address, so no key or token reaches the browser. Keys are set as the host's environment variables. The `Dockerfile` builds the frontend and then runs FastAPI. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Validate
 

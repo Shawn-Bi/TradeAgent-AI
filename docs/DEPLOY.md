@@ -1,4 +1,6 @@
-# Deploying TradeAgent AI (Railway, demo day)
+# Deploying TradeAgent AI (demo day)
+
+**Where it runs:** the demo is deployed on **Render** at https://tradeagent-ai.onrender.com, not Railway. It is the one-service, single-origin design below: FastAPI serves `/api/*` and the built frontend on one address. The Railway-specific steps below record the original plan.
 
 Decided by A and Shawn (B) on October 17, 2026 at 2:00 PM EDT. The service runs for **one day only** (today) for the Money Talks 2 demo and judging.
 
