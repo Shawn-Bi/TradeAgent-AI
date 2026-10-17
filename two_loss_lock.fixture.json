@@ -1,0 +1,18 @@
+{
+  "fixture_id": "two-loss-lock",
+  "description": "Deterministic risk-gate acceptance scenario; illustrative event sequence, not market backtest data",
+  "strategy_id": "ng-demo-v1",
+  "session_id": "demo-session-001",
+  "account_id": "DEMO-NG-001",
+  "simulation_only": true,
+  "seed": 42,
+  "preconditions": {"approval_status": "APPROVED", "position_open": false, "consecutive_loss_lock": 2},
+  "steps": [
+    {"step": 1, "event": "ENTRY_ELIGIBLE", "position_id": "P1", "expected": "OPEN_LONG"},
+    {"step": 2, "event": "POSITION_CLOSED", "position_id": "P1", "realized_pnl_usd": -40, "expected_consecutive_losses": 1},
+    {"step": 3, "event": "ENTRY_ELIGIBLE", "position_id": "P2", "expected": "OPEN_LONG"},
+    {"step": 4, "event": "POSITION_CLOSED", "position_id": "P2", "realized_pnl_usd": -30, "expected_consecutive_losses": 2},
+    {"step": 5, "event": "ENTRY_ELIGIBLE", "position_id": "P3", "expected": "BLOCK_ENTRY", "reason": "TWO_CONSECUTIVE_LOSSES"}
+  ],
+  "assertions": {"new_position_after_step_5": false, "session_locked": true, "blocked_entry_logged": true, "risk_violations": 0}
+}
