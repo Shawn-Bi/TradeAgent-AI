@@ -153,6 +153,13 @@ export function tradeOutcomes(trades: CompletedTrade[]) {
   return { closed: trades.length, target, stop, cutoff }
 }
 
+/** "2 closed · 2 at stop · 0 at target" (+ "· N at cutoff"), each trade counted once; Simulate and Audit share it. */
+export function outcomeWords(trades: CompletedTrade[]) {
+  if (trades.length === 0) return 'no entries'
+  const o = tradeOutcomes(trades)
+  return [`${o.closed} closed`, `${o.stop} at stop`, `${o.target} at target`, ...(o.cutoff ? [`${o.cutoff} at cutoff`] : [])].join(' · ')
+}
+
 /** Plain words for a BLOCK_ENTRY's reason code, for rows that list a refused entry. */
 export const blockWords = (code: string | null | undefined) =>
   (code && GATE_WORDS[code]) ?? 'blocked by a risk rule'
