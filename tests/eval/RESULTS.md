@@ -19,6 +19,7 @@ ran on the same inputs:
 | `nicrron/auto` (routed to `anthropic/claude-opus-5-5`) | 38 harder | 37 | 35 |
 | `openai/gpt-4o-mini` | 63 original | 37 | 36 |
 | `openai/gpt-4o-mini` | 38 harder | 22 | 21 |
+| `openai/gpt-4.1-mini` | 63 original | 45 | 48 |
 
 On `openai/gpt-4o-mini`, the same model for both versions, across all 101 inputs:
 
@@ -49,6 +50,58 @@ v1 on `openai/gpt-4o-mini`, 4 runs, one cause: a non-tick unit copied into a tic
 
 v2 set none of these values. PRISM sessions: `eval-v1-mini-full-<id>` and `eval-v1-mini-hard-<id>`.
 
+The same cause shows up on `openai/gpt-4.1-mini`: v1 set `unit-05` (2 points → 2 ticks), `unit-06` (bare 5 → 5
+ticks), `unit-07` (15 ticks → `exit.target_r = 1.25`) and `unit-10` (2 cents → 20 ticks); v2 set none of them.
+
+## PRISM Root Cause
+
+PRISM's per-trace analysis ran on the 42 failed v1 `openai/gpt-4o-mini` traces, then Root Cause "Analyze now" built
+two active clusters, both marked Tentative with the evidence "judge majority only … no hard evidence":
+
+| Cluster | Affected |
+|---|---|
+| failures in tradeagent-strategy-translator on path request_init>llm_call>final_answer (Path Conformance) | 78 |
+| prompt failures on path request_init>llm_call>final_answer (e.g. 'strategy customization exit scaling') | 13 |
+
+PRISM's clusters are broader than the harness's unit-error cluster above and do not isolate it. Root Cause could not
+locate the prompt in code ("prompts not detected in connected repo"): the PRISM project was connected to the
+planning repo `antunishdPursuit/money-talks-2`, not this one.
+
+## PRISM evaluator: v1 vs v2 on `openai/gpt-4.1-mini`
+
+The Evaluators Hub can narrow a run only by model, and the `openai/gpt-4o-mini` traces include the pre-fix `v2-mini`
+batches. So the 63 original inputs were run again for v1 and v2 on `openai/gpt-4.1-mini`, a model used nowhere else
+in the project, with the span fix in place, and the evaluator scored every `openai/gpt-4.1-mini` trace: 126, plus
+one v1 `clear-01` trace from a smoke test (`results/v1-m41-smoke.json`, labelled faithful).
+
+The evaluator is "Translation faithfulness": the rubric in [`docs/kb/EVALUATOR.md`](../../docs/kb/EVALUATOR.md), with
+its last line mapped to PRISM's label rails: faithful (score 1.0), partial (between 0 and 1), unfaithful (score 0).
+It ran on PRISM's included engine. Export: `results/prism-eval-m41.json`.
+
+| `openai/gpt-4.1-mini`, 63 inputs | v1 | v2 |
+|---|---|---|
+| PRISM average score | 80.7 | 79.3 |
+| PRISM faithful / partial / unfaithful | 40 / 16 / 7 | 30 / 29 / 4 |
+| Harness pass | 45 | 48 |
+| Runs that set a value the trader never stated | 11 | 1 |
+| Unit errors | 4 | 0 |
+| Unit-trap inputs passed | 7 / 11 | 10 / 11 |
+| Unnecessary questions (`over_asked`) | 2 | 8 |
+
+PRISM's judge scores v1 and v2 about the same, while the harness shows v2 removing almost every value the trader never
+stated. The judge does not apply parts of the rubric:
+
+- Of v1's 11 runs that set a value the trader never stated, it labelled 5 faithful (score 100): `unit-06` (bare 5 →
+  5 ticks), `unit-10` (2 cents → 20 ticks, with reasoning that calls the conversion correct), `vague-01` ("tight
+  stop" → 2 ticks), `vague-02` ("a bit more room" → 6 ticks) and `risk-06` (max trades set to 20 for "trade as much
+  as I want"). It gave `unit-05` and `vague-04` partial, and only 4 unfaithful.
+- It marks down correct clarification questions: 25 v2 runs that pass the harness are partial or unfaithful, many
+  for asking about an ambiguous unit the rubric says must be asked about (`unit-01`, `unit-05`, `unit-10`).
+- It also scored v1 `unit-01` unfaithful (0) after reading "4 points" as a defined unit, the opposite of the rubric.
+
+The harness grades against fixed expectations per input; the PRISM judge is an LLM applying the rubric text. Where
+they disagree on unit errors, the harness follows the rubric.
+
 ## Files
 
 | File | Prompt | Model | Inputs | PRISM sessions |
@@ -59,14 +112,17 @@ v2 set none of these values. PRISM sessions: `eval-v1-mini-full-<id>` and `eval-
 | `results/v2-mini-full.json`, `results/v2-mini-hard.json` | v2 | gpt-4o-mini | both | `eval-v2-mini-full-*`, `eval-v2-mini-hard-*` |
 | `results/v2-mini2-full.json`, `results/v2-mini2-hard.json` | v2 | gpt-4o-mini | both | `eval-v2-mini2-full-*`, `eval-v2-mini2-hard-*` |
 | `results/v2-mini2-retry-full.json`, `results/v2-mini2-retry-hard.json` | v2 | gpt-4o-mini | 9 re-sends | `eval-v2-mini2-retry-*` |
+| `results/v1-m41.json`, `results/v2-m41.json` | v1 / v2 | gpt-4.1-mini | original | `eval-v1-m41-*`, `eval-v2-m41-*` |
+| `results/v1-m41-smoke.json` | v1 | gpt-4.1-mini | `clear-01` | `eval-v1-m41-smoke-clear-01` |
+| `results/prism-eval-m41.json` | PRISM evaluator labels, scores and reasoning for the 127 traces above | | | |
 
 The `v2-mini` traces were sent before the span fix in `backend/prism_client.py` (PR #12), so PRISM shows their
 retrieved context as the output. The `v2-mini2` batches repeat the same inputs on that fix and carry the model's
 reply as the output; their grades match `v2-mini` (temperature 0). The `retry` files re-send the 9 inputs whose
 trace or Knowledge Base search timed out in the parallel `v2-mini2` run, so every input has a correct v2 trace.
 
-The scores above come from this harness, not from the PRISM Evaluators Hub. The PRISM rubric is
-[`docs/kb/EVALUATOR.md`](../../docs/kb/EVALUATOR.md).
+Pass counts come from this harness. PRISM evaluator scores exist only for the `openai/gpt-4.1-mini` batches (see
+above).
 
 ## Reproduce
 
@@ -75,4 +131,5 @@ The scores above come from this harness, not from the PRISM Evaluators Hub. The 
 .venv/bin/python scripts/eval_run.py --prompt-version v2 --tag full
 NICRRON_MODEL=openai/gpt-4o-mini .venv/bin/python scripts/eval_run.py --prompt-version v1 --tag mini-hard --inputs tests/eval/inputs_hard.jsonl
 .venv/bin/python scripts/eval_run.py --compare tests/eval/results/v1-mini-full.json tests/eval/results/v2-mini2-full.json
+NICRRON_MODEL=openai/gpt-4.1-mini .venv/bin/python scripts/eval_run.py --prompt-version v2 --tag m41
 ```

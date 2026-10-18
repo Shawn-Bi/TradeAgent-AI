@@ -1,0 +1,61 @@
+{
+  "run": {
+    "prompt_version": "v1",
+    "tag": "m41-smoke",
+    "started_at": "2026-10-17T20:29:49.454887+00:00",
+    "finished_at": "2026-10-17T20:29:53.081727+00:00",
+    "inputs": "inputs.jsonl",
+    "base_url": "spawned",
+    "agent_id": "tradeagent-strategy-translator"
+  },
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1.0,
+    "by_category": {
+      "clear": {
+        "pass": 1,
+        "fail": 0,
+        "error": 0
+      }
+    },
+    "failure_reasons": {}
+  },
+  "results": [
+    {
+      "id": "clear-01",
+      "category": "clear",
+      "text": "Stop 6 ticks below the swing low, target 1.5R.",
+      "outcome": "pass",
+      "reasons": [],
+      "prompt_version_used": "v1",
+      "interpreted_fields": [
+        "exit.target_r",
+        "stop.buffer_ticks"
+      ],
+      "values": {
+        "exit.target_r": 1.5,
+        "stop.buffer_ticks": 6
+      },
+      "approvable": true,
+      "clarification_questions": [],
+      "unsupported_requirements": [],
+      "warnings": [
+        "Nicrron: stop.buffer_ticks from 'Stop 6 ticks below the swing low'",
+        "Nicrron: exit.target_r from 'target 1.5R'"
+      ],
+      "kb_sources": [],
+      "kb_status": "NOT_REQUESTED",
+      "model_used": "openai/gpt-4.1-mini",
+      "cached": false,
+      "latency_ms": 1258,
+      "nicrron_error": null,
+      "session_id": "eval-v1-m41-smoke-clear-01",
+      "prism_trace_id": "740dc762-5c59-4ba8-bcd4-e46a3d5f801c",
+      "prism_status": "SENT",
+      "wall_ms": 3437
+    }
+  ]
+}

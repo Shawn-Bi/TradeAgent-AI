@@ -1,0 +1,1157 @@
+{
+  "exported_at": "2026-10-17",
+  "source": "PRISM Evaluators Hub, GET /api/eval-results",
+  "evaluator": "Translation faithfulness (rubric: docs/kb/EVALUATOR.md, final line mapped to rails)",
+  "rails": [
+    "faithful",
+    "partial",
+    "unfaithful"
+  ],
+  "engine": "PRISM AI (included)",
+  "task": "Translation faithfulness: v1 vs v2 (gpt-4.1-mini), model filter openai/gpt-4.1-mini",
+  "results": [
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-01",
+      "trace_id": "6d3e9987-778b-4096-a08b-92ace5b00ee8",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified both stated values from the trader's text: 'Stop 6 ticks below the swing low' maps to stop.buffer_ticks=6 (a clear tick measurement), and 'target 1.5R' maps to exit.target_r=1.5 (an explicit R-multiple). Both overrides are supported by the BASE_SPEC schema, use the correct field names and units, contain no invented values, and all three output keys are properly formatted with no protected fields modified. The trader's instruction was unambiguous and fully covered."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-02",
+      "trace_id": "3032ae03-105c-4abd-8699-8a54cce8e5d4",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly extracted two clear, supported instructions from the trader's text: (1) 'Trade 4 contracts' maps exactly to quantity_contracts: 4, and (2) 'close 2 at the first target of 1.2R' maps exactly to exit.first_target_close_contracts: 2. The trader restated the target_r as 1.2R, which matches the existing BASE_SPEC value of 1.2 and requires no override. No protected keys were modified, no ambiguous or unsupported instructions were present, no unit errors occurred, and no values were invented. All four required JSON keys are present with appropriate content."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-03",
+      "trace_id": "1b060ba9-88f7-4db2-8056-29a6dc171553",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader specified two clear, supported requirements: (1) use a 50-period SMA for the trend, and (2) apply it to the 15-minute chart. The OUTPUT correctly overrides trend.period to 50 and includes timeframes.trend_minutes as 15 (matching the BASE_SPEC default but appropriately documented). Both values are stated explicitly in the trader's text, no invented values appear, no unit errors exist, and all interpretation notes accurately trace back to the source instruction. The output is valid JSON with all four required keys, and no unsupported or ambiguous instructions are present."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-04",
+      "trace_id": "eaa18d25-f296-4697-85d3-cbb2d7b48fa8",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly extracted two clear, supported instructions from the trader's text: (1) 'Max 2 trades per day' maps precisely to risk.max_completed_trades_per_session=2, changing the default from 3; (2) 'lock new entries after 1 losing trade' maps precisely to risk.consecutive_loss_lock=1, changing the default from 2. Both values are stated explicitly in the source text, both override keys correspond to supported risk management fields, no protected keys were modified, no units are involved, and the JSON structure is valid. The interpretation notes correctly document the source of each override, clarification_questions and unsupported_requirements are appropriately empty because neither instruction is ambiguous or unsupported."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-05",
+      "trace_id": "85235e4e-af05-4f41-8d82-d19a07844cb9",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Be flat by 3:30 pm New York time' is unambiguous and directly supported. The translator correctly converted 3:30 pm to 15:30 in 24-hour format and placed it in session.cutoff_local, which is the correct field for session end time. The BASE_SPEC already has timezone 'America/New_York' and the default cutoff_local was '16:00', so this override moves it 30 minutes earlier as stated. No protected keys were modified, no invented values were introduced, no unit errors occurred, and the JSON structure is valid with all four required keys present. The interpretation note correctly documents the source of the override."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-06",
+      "trace_id": "b0ef3402-b3f2-4074-8375-cb2df5cc43e5",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader explicitly stated 'The pullback can dip 5 ticks under the 5 minute 20 SMA,' which directly maps to the entry.tolerance_ticks field. The translator correctly extracted the value 5 from this statement, changed it from the default 3 to 5, and placed it in the appropriate override location. The interpretation note accurately traces the origin of this value. No invented values, unit errors, ambiguities, unsupported features, or missing clear instructions are present."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-07",
+      "trace_id": "7875345c-80d4-45a2-b051-6c7db882022c",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'lowest low of the last 8 five-minute bars' which maps directly to lookback_5m_bars: 8, and 'stop 3 ticks under it' which maps directly to buffer_ticks: 3. Both values are explicitly stated in the trader's text, use correct units (ticks), and correspond exactly to the BASE_SPEC.stop fields that support SWING_LOW_BUFFER logic. The override is minimal, precise, and contains no invented values, unit errors, or unsupported approximations. The interpretation_notes correctly document the source of each value."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-08",
+      "trace_id": "af1b811a-6fcc-4eb5-9531-ad8d252a52d6",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's text 'Target 2R.' is unambiguous and directly maps to exit.target_r = 2, following the exact rule that 'R' denotes a multiple of initial risk. The override correctly sets exit.target_r to 2 with no invented values, unit errors, or protected keys violated. The interpretation_notes accurately document the source, clarification_questions and unsupported_requirements are appropriately empty, and the output is valid JSON with all four required keys."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-09",
+      "trace_id": "2be8b761-3fcf-4f4e-bfc9-29b169ebe785",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'The 20 SMA on the 15m chart must be rising for at least 3 bars' directly maps to the trend.slope_bars field, which controls how many consecutive bars the moving average must be rising. The override correctly changes slope_bars from the default value of 2 to 3, matching the stated requirement exactly. All four required output keys are present and valid: overrides contains the single necessary change, clarification_questions and unsupported_requirements are empty (correct, as the instruction is clear and supported), and interpretation_notes correctly documents the source of the override."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-10",
+      "trace_id": "4c8a7c40-4b37-4471-a08c-89421d626c3a",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated two clear, supported requirements: use 30-minute candles for trend analysis and 10-minute candles for entries. The OUTPUT correctly maps these to timeframes.trend_minutes: 30 and timeframes.entry_minutes: 10, with no invented values, unit errors, or ambiguities. The interpretation_notes accurately document the source of each value from the trader's text, and no unsupported features were invoked. All four required output keys are present and valid."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-11",
+      "trace_id": "00fa59fc-6145-4051-9cd8-82525da6aa87",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader specified 'Stop 0.004 below the swing low.' The BASE_SPEC uses stop.type='SWING_LOW_BUFFER' with buffer_ticks=4 as default. Since tick_size=0.001 and 0.004\u00f70.001=4 ticks exactly, the override buffer_ticks: 4 is the correct stated value with no unit error. The trader's instruction is clear and supported; the output correctly identifies this conversion in interpretation_notes, sets no invented values, asks no redundant questions, and lists no unsupported requirements. All protected keys (schema_version, strategy_id, version, approval_status, simulation_only, account_id, instrument, direction) are unmodified. The JSON is valid and complete."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-12",
+      "trace_id": "a04661b1-1b7a-4794-b235-a3a5a03a439e",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The translator correctly identified and applied the stop buffer override (5 ticks) from the trader's explicit instruction 'Stop 5 ticks under the swing low.' However, three clear, supported instructions were silently dropped: (1) 'No shorts' is already satisfied by BASE_SPEC direction='LONG_ONLY' but should be noted as understood; (2) 'no trailing stop' is an unsupported requirement that should appear in unsupported_requirements, not be silently ignored; (3) 'never hold overnight' is already satisfied by BASE_SPEC risk.no_overnight=true but like 'no shorts' should be acknowledged. The output fails to list any unsupported requirements despite 'no trailing stop' being an explicit constraint that the system does not support, violating the rule that each unsupported ask must appear in unsupported_requirements or clarification_questions."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-13",
+      "trace_id": "266f6b86-f4b4-40b1-8070-594b6af4706c",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 65.0,
+      "reasoning": "The translator correctly extracted two clear, supported parameters: entry.ma_period=10 and entry.tolerance_ticks=0, both stated directly in the trader's text and properly formatted in ticks. However, the trader's third instruction\u2014'the low must not break the average'\u2014is a constraint on entry behavior that is not captured in any override. This constraint describes a stop-loss or entry filter tied to the MA itself, which is unsupported by the fixed strategy's entry configuration (PULLBACK_HOLD_BULLISH with tolerance_ticks controlling only price proximity, not a barrier). The translator should have either added a clarification question about how this MA-barrier rule relates to the existing stop strategy (SWING_LOW_BUFFER), or listed it in unsupported_requirements. By silently omitting this third instruction without question or acknowledgment, the translator loses 0.4 points for dropping an ambiguous/unsupported requirement."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "clear-14",
+      "trace_id": "af1ab441-cc35-4ec1-bffb-0fac78730033",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "All three trader instructions are correctly extracted and mapped to the appropriate schema fields with stated values only. (1) '3 contracts' \u2192 quantity_contracts: 3 is a direct value. (2) 'take 1 off at 1.3R' \u2192 exit.target_r: 1.3 and exit.first_target_close_contracts: 1 are both explicit and correctly interpreted as an R-multiple and contract count. (3) 'stop 4 ticks below the swing low' \u2192 stop.buffer_ticks: 4 is a direct tick value matching the fixed spec. The overrides object contains only these three fields with no invented values, no unit errors, no protected keys set, and no approximation of unsupported features. The interpretation_notes correctly document the source of each override, and both clarification_questions and unsupported_requirements arrays are appropriately empty because no ambiguous or unsupported instructions were present. The output is valid JSON with the required four keys."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-01",
+      "trace_id": "8f2ca0b3-6c2f-400e-a130-5da868406de7",
+      "harness_outcome": "pass",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader stated 'Stop 4 points below the swing low.' In this market context (NG futures), 'points' is a standard unit meaning 0.01 price units, which equals 10 ticks (since 1 tick = 0.001). The instruction is clear and supported: 4 points = 40 ticks. The translator should have set stop.buffer_ticks to 40 in overrides but instead left overrides empty and asked a clarification question about a statement that was already unambiguous. This is a UNIT ERROR and a failure to apply a clear, supported, stated value, yielding a score of 0."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-02",
+      "trace_id": "d55810f6-d2a7-4a92-9e6c-fbe036830f69",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 75.0,
+      "reasoning": "The translator correctly identified that the trader used 'pips' (a non-tick unit) and asked a clarification question rather than inventing a tick value, which follows the protocol. However, the question could be more helpful: the standard conversion for natural gas futures is 1 pip = 0.001 price units = 1 tick, so '40 pips' = 40 ticks is deterministic and should have been converted directly with a note, not deferred. The trader gave a clear, supported instruction ('stop 40 pips under recent low') that maps to stop.buffer_ticks = 40, but this was left out of overrides pending clarification. The OUTPUT is valid JSON with proper structure, no invented values, no protected keys modified, and no unsupported requirements silently approximated."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-03",
+      "trace_id": "1143eecd-34df-4902-b185-5582cd8f8f42",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader stated 'half a cent below the swing low,' which is a unit mismatch issue. A cent (0.01) is not the same as a tick (0.001). Half a cent = 0.005, which does not map cleanly to whole ticks. The translator correctly identified this ambiguity and asked a clarification question rather than inventing a value, which prevents a unit error. However, the translator could have been more helpful by explaining the conversion (half cent \u2248 5 ticks if rounding, but that would be an interpretation, not what was stated). The overrides object is empty and correct\u2014no value should be set until the trader clarifies. All four output keys are present and valid JSON. The main weakness is that asking the clarification question is appropriate, but the output doesn't fully explain whether 'half a cent' means 0.0005 (less than 1 tick) or if the trader misspoke; the question itself is clear and justified."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-04",
+      "trace_id": "b3761067-e40a-42f6-a7d1-105a072b95b8",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader stated 'Risk $40 per contract on the stop,' which is a clear dollar amount instruction that can be converted to ticks using the given instrument parameters: $40 \u00f7 $10 per tick = 4 ticks. This is a stated value with an exact conversion rule. However, the translator asked a clarification question instead of computing this straightforward conversion, treating an unambiguous instruction as unclear. The translator should have calculated stop.buffer_ticks = 4 in overrides rather than requesting clarification. The output correctly uses valid JSON structure and avoids inventing unsupported values, but fails to apply a clear, supported, stated value that had a definite answer."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-05",
+      "trace_id": "5e43b599-97bc-47dd-a624-dce0bb49ab65",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 80.0,
+      "reasoning": "The translator correctly identified that the trader's instruction 'Pullback tolerance 2 points from the moving average' should map to entry.tolerance_ticks and set the value to 2, which is a clear, stated number. However, the translator then asks a clarification question ('Please clarify if 'points' means ticks or another unit') even though it has already made an interpretive decision by applying the value. The fixed facts state that 'points', 'pips', 'cents' and bare numbers are NOT ticks, creating genuine ambiguity about the unit. The translator violated the rule that clarification questions should not be asked about instructions that were already clear and supported: either points needed clarification (and the value should not have been set), or the instruction was clear enough to apply without asking. This is a -0.2 penalty for asking an unnecessary clarification question about an already-processed value."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-06",
+      "trace_id": "c7491272-e7bb-4c6b-9e66-f7befccf4ef5",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified two clear, supported instructions from the trader's text: 'Stop 5 below the low' maps to stop.buffer_ticks=5 (a stated tick distance), and 'target 1.5R' maps to exit.target_r=1.5 (an explicit risk multiple). Both values are stated in the trader's text, use correct units (ticks and R-multiple respectively), and are applied to the appropriate schema fields. No protected keys were modified, no ambiguous instructions were left unaddressed, and no unsupported requirements were approximated with other fields. The output is valid JSON with all four required keys properly populated."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-07",
+      "trace_id": "a46790b8-e49a-4cf1-8fbd-a03c025a2487",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The translator committed a critical UNIT ERROR by converting '15 ticks' into an R-multiple (1.25R). The specification explicitly states that 'exit.target_r is a multiple of initial risk' and '15 ticks' is NOT an R multiple\u2014it is an absolute distance in ticks. The correct interpretation should set exit.target_r or introduce a new field for absolute tick-based profit targets, but instead the translator invented a formula ('15 ticks / 12 ticks initial risk = 1.25 target R') that assumes a specific risk level not stated by the trader. This violates the rule that 'a value the trader never gave is INVENTED' and creates a UNIT ERROR by conflating ticks with R-multiples."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-08",
+      "trace_id": "d58c8caf-425f-417e-97a3-d02b83889671",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'Stop 1% below the entry' using a percentage unit, which is not one of the supported distance specifications (ticks only for stop fields). The translator correctly identified that percentages are not supported and asked a clarification question requesting the stop distance in ticks. No overrides were invented, no protected keys were modified, and the response appropriately handles an ambiguous/unsupported unit specification by requesting clarification rather than guessing or dropping the instruction. The JSON structure is valid with all four required keys present."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-09",
+      "trace_id": "479907a1-d547-4d30-b079-85d961d95199",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated '3-5 points below the recent low' but the strategy schema defines stop distances in ticks (0.001 price units), not points. The translator correctly identified this unit mismatch and asked a clarification question rather than inventing a conversion or silently dropping the instruction. The overrides object is empty (correct, since no unambiguous values were stated), unsupported_requirements is empty (correct, the requirement is supported but unclear), and interpretation_notes is empty (appropriate given the ambiguity). The translator followed the rule that unitless numbers and non-tick units require clarification, not assumption."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-10",
+      "trace_id": "0c05eb06-81f1-411c-8c6a-78c926a3453c",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly converted both instructions: (1) '2 cents of room under the swing low' \u2192 20 ticks (2 cents \u00f7 0.001 per tick = 2000 units; however, '2 cents' in financial parlance means 0.02 price units = 20 ticks, which is the correct interpretation), assigned to stop.buffer_ticks; (2) '1.5 times risk' \u2192 exit.target_r = 1.5, a standard R-multiple format. Both values are stated in the trader's text, unit conversions are exact, no protected keys were modified, all four required JSON keys are present with appropriate content, and no ambiguous or unsupported requirements were silently dropped."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unit-11",
+      "trace_id": "2e10a7be-0dd2-4962-a7aa-f6f9fe23c519",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The trader stated a tolerance of 0.0025 from the SMA, which is a clear, supported instruction that should be converted to ticks in the overrides. Since tick_size is 0.001, the value 0.0025 equals 2.5 ticks, which rounds to either 2 or 3 ticks depending on rounding convention. The translator correctly identified an ambiguity about units (asking whether 0.0025 is in ticks or another unit), but this question is partially misaligned: the value 0.0025 is already expressed as a decimal price distance, which under the fixed facts converts exactly to 2.5 ticks\u2014not an ambiguous unit declaration. The translator should have recognized this as either a clear instruction (convert 0.0025 to 2.5 ticks and ask about rounding) or applied the rounding rule. Instead, the overrides are empty, failing to apply a stated, supported requirement to the entry.tolerance_ticks field."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-01",
+      "trace_id": "df7952ac-309c-4a70-8e7f-d2ec121ff274",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified two clear, supported instructions from the trader's text: (1) 'Trade 4 contracts' maps exactly to quantity_contracts: 4, and (2) 'take half off at the first target' maps exactly to exit.first_target_close_contracts: 2 (half of 4 contracts). Both values are stated or follow by exact rule, no units are misapplied, no protected keys are set, all arrays are empty and appropriate, and the JSON is valid. No ambiguity, no invented values, no unsupported requirements present."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-02",
+      "trace_id": "fefe8fc7-13d7-4b4e-8d02-50360262df79",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly extracted 'Trade 3 contracts' \u2192 quantity_contracts: 3 and 'take half off at 1.5R' \u2192 exit.target_r: 1.5, both stated values with proper units (contract count and R-multiple). However, the instruction 'take half off' implies a partial exit at 1.5R, which requires setting exit.first_target_close_contracts to reflect closing half of 3 contracts (1.5, which is ambiguous for an odd quantity). The translator failed to address this ambiguity: it should either set first_target_close_contracts to 1 or 2 (if rounding is intended) with a clarification note, or pose a clarification question about how to close a fractional half of 3 contracts. This is a clear, supported instruction with a stated value that is missing from overrides."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-03",
+      "trace_id": "e4db103f-2fcb-4451-b6c2-8ebb396c3519",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader's instruction 'Take half off at the target' is a clear, supported directive that should set exit.first_target_close_contracts to 1 (half of the default quantity_contracts of 2). The OUTPUT contains an empty overrides object, meaning this stated value was silently dropped instead of being applied. According to the scoring rules, dropping a clear, supported, stated value results in a score of 0.0 and unfaithful label."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-04",
+      "trace_id": "0e4d189a-50b0-4077-a92d-8868f6ded3f2",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly extracted 'Trade 6 contracts' to quantity_contracts: 6, a direct stated value. For 'take a third off at 1R', the trader specified closing one-third of 6 contracts at the 1R target; 6 \u00f7 3 = 2, which is exact and directly supports exit.first_target_close_contracts: 2. Both overrides follow stated values by exact rules. No protected keys were modified, no unit errors exist (contract counts are unitless), no unsupported requirements were approximated, and all four required output keys are present with valid JSON structure."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-05",
+      "trace_id": "f129c459-941a-4328-8bac-e85376bd71ec",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The translator invented the value 3 for exit.first_target_close_contracts. The trader said 'scale out 50% at the first target' with 5 contracts total, which means closing 2.5 contracts (50% of 5). Since 2.5 is not a whole number and contracts cannot be fractional, this creates ambiguity that should have been raised as a clarification question. Instead, the translator rounded to 3, which is neither 2 nor 2.5, violating the rule that 'half of an odd or non-divisible quantity is ambiguous' and must not be approximated without asking. This is a UNIT ERROR combined with INVENTED value, scoring 0.0."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-06",
+      "trace_id": "55776896-c53e-46c9-8663-fc394c333a1a",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 75.0,
+      "reasoning": "The translator correctly identified and overrode quantity_contracts to 4 and target_r to 1.2, both clearly stated in the trader's text. However, the interpretation of '75% off' as first_target_close_contracts=3 is problematic: 75% of 4 contracts equals 3, which is mathematically correct, but the trader's intent to 'take 75% off at 1.2R' suggests closing 3 contracts at the first target, leaving 1 contract for the remaining exit logic. While this value (3) happens to be correct, the translator marked the entire requirement as 'unsupported' rather than recognizing that 'taking 75% off' can be precisely calculated from the stated quantity and percentage, making this a false negative in unsupported_requirements. The overrides themselves are accurate and complete for the supported instructions, but the logical contradiction between listing the requirement as unsupported while providing what appears to be a correct numerical override creates ambiguity about whether the translator understands the requirement or is guessing."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "frac-07",
+      "trace_id": "9319e47d-a1ab-4351-bb83-d621bb7e2be4",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The translator invented a value for quantity_contracts. The trader said 'Trade 2 contracts' (a clear statement matching the BASE_SPEC default of 2) and 'take a third off at the first target' (referring to closing 1 of those 2 contracts). The output sets quantity_contracts to 3, which is not stated anywhere in the trader's text and contradicts the explicit '2 contracts' instruction. This is a critical INVENTED value that makes the override incorrect."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-01",
+      "trace_id": "e1f8210e-3147-49e4-b9bb-1596f78c11c4",
+      "harness_outcome": "pass",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader's requirement 'Go short when the 15m trend is down' is an unsupported directive because the BASE_SPEC has direction set to 'LONG_ONLY' and the fixed facts explicitly state that short selling is unsupported and must not be imitated with another field. The OUTPUT correctly identifies this as unsupported_requirements, but the overrides object is empty when it should contain nothing (which is correct), however the core issue is that the translator cannot fulfill this request within the constraints. The translator properly rejected the request rather than approximating it, which is correct procedure, but since the trader explicitly asked for short selling and the system cannot support it, and the OUTPUT provided no clarification question or workaround path, this represents a complete failure to handle the core trader instruction\u2014the entire strategy request is incompatible with the system constraints."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-02",
+      "trace_id": "ed98a4a3-63c5-42a4-a641-6461ea81d5ab",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Trail the stop on the runner once the first target hits' requests a trailing stop mechanism, which is explicitly listed in the Fixed Facts as unsupported. The OUTPUT correctly identifies this as an unsupported requirement in the unsupported_requirements array, does not attempt to approximate it with another field, leaves overrides empty, and provides no clarification questions because the instruction is clear but simply not supported by the system. The translator followed all evaluation rules: no invented values, no unit errors, no protected keys modified, proper format, and correct handling of an unsupported ask."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-03",
+      "trace_id": "d704a721-d667-4afb-9e03-30279c0533ff",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader's request 'Skip the first 15 minutes after the open' is explicitly listed as unsupported in the fixed facts: 'Unsupported: short selling, trailing or breakeven stops, time-of-day windows (\"skip the first 15 minutes\")'. The OUTPUT attempted to approximate this unsupported requirement by modifying session.cutoff_local to '16:15', which violates the rule that 'each unsupported ask appears in unsupported_requirements (or a clarification question) and is not approximated by another field.' Additionally, the OUTPUT should have listed this in unsupported_requirements rather than creating an override that mimics the behavior. The clarification question provided does not cure this fundamental error\u2014the instruction itself must be rejected as unsupported, not reinterpreted."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-04",
+      "trace_id": "36279a2d-6caf-4dad-a65e-fa349b90a311",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested a 21 EMA for the trend, which is unsupported (only SMA is supported per the fixed facts). The OUTPUT correctly identifies this as an unsupported requirement, places it in unsupported_requirements[], asks a clarifying question about whether to keep SMA or specify another change, and does not attempt to approximate EMA with SMA or any other field. The overrides object is correctly empty since no supported changes were requested. All four required JSON keys are present and valid."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-05",
+      "trace_id": "68418d3e-a216-4e68-a747-9427cd915ed0",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested 'average down once if the first entry goes against me,' which is explicitly listed in the unsupported features documentation as 'averaging down' and 'scaling in.' The OUTPUT correctly identifies this as an unsupported requirement, places it in unsupported_requirements, asks a clarification question, and does not attempt to approximate it with another field or invent any override values. The overrides object is empty, which is appropriate since no supported instructions were provided. All four required JSON keys are present and properly formatted."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-06",
+      "trace_id": "8a70a5f7-c29c-4fb0-96d5-92cf46a28c59",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested a breakeven stop after 1R, which is explicitly listed as unsupported in the fixed facts ('trailing or breakeven stops'). The translator correctly identified this as an unsupported requirement, placed it in the unsupported_requirements array, asked a clarification question, left overrides empty, and did not attempt to approximate the feature with another field. The output is valid JSON with all four required keys, no protected keys were modified, and the unsupported instruction was properly handled rather than silently dropped or invented."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-07",
+      "trace_id": "00ccaff4-59c1-4697-af1b-0e9c9992d5f1",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The translator correctly identified that the trader's request specifies a time window (9:30\u201311:00) and set cutoff_local to '11:00', which is a supported field. However, the translator failed to recognize that the BASE_SPEC lacks a session start time field; the spec only has cutoff_local, not a start_local field. This means the 9:30 constraint cannot be fully enforced within the schema. The translator correctly flagged this limitation in clarification_questions and unsupported_requirements, but the override is incomplete\u2014it addresses only half the requirement (the upper bound). Additionally, the instruction is clear and supported in principle (time-of-day windows are listed as unsupported), so the answer should have simply rejected it entirely rather than partially implementing one bound. The output correctly maintains valid JSON format and does not invent values, but fails to fully address the unsupported nature of time-of-day windows by attempting a partial workaround."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-08",
+      "trace_id": "eb685c6b-2965-481a-8cc8-02455ac12f87",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified that 'stop 4 ticks under the swing low' maps to stop.buffer_ticks = 4, which is already set to 4 in the BASE_SPEC, so the override is accurate and not invented. The RSI filter requirement was properly flagged as unsupported (RSI indicators are explicitly unsupported per the reference rules) and listed in unsupported_requirements with an appropriate clarification question, rather than being approximated with another field. All four required JSON keys are present with valid structure, no protected keys were modified, and the output correctly handles both the supported stop instruction and the unsupported RSI instruction according to specification."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-09",
+      "trace_id": "3778bfeb-e8e7-4c17-82b7-6f813d7f0d7f",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The trader requested to 'Trade crude oil instead of natural gas,' which is a clear, supported instruction to change the instrument. The OUTPUT correctly identifies this as an unsupported requirement and asks a clarification question, but it should have either attempted a reasonable override (e.g., changing symbol to 'CL_SIM' with appropriate venue and parameters) or kept the status quo while documenting the blocker. The OUTPUT leaves overrides empty (-0.3 for missing a clear instruction), though it does properly categorize the request in unsupported_requirements. The clarification question is appropriate but somewhat redundant given that the instruction was already clear enough to mark as unsupported. The OUTPUT is valid JSON and contains the four required keys, avoiding INVENTED values and unit errors."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-10",
+      "trace_id": "5fd9509b-1811-419e-9a25-9115316c4760",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's request to 'Hold the runner overnight if it is in profit' directly conflicts with the BASE_SPEC constraint risk.no_overnight = true, which forbids overnight holds. The translator correctly identified this as an unsupported requirement and placed it in unsupported_requirements without attempting to approximate it with another field or set a protected key. The overrides object is empty, which is correct since no supported instructions were given. The output is valid JSON with all four required keys properly formatted."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "unsup-11",
+      "trace_id": "7a41ce1e-8952-4dbf-bee5-6ecc75bacdf6",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested pyramiding ('Add another contract when the trade is working, pyramid into winners'), which is explicitly listed as an unsupported feature in the fixed facts. The OUTPUT correctly identifies this as unsupported_requirements, does not attempt to approximate it with another field, and asks an appropriate clarification question. The overrides object is correctly empty since no supported values were stated by the trader. All four required keys are present and valid JSON."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-01",
+      "trace_id": "bc0898a2-bd09-4928-8b6f-e25edbb59dec",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Allow up to 5 losses in a row before locking' directly maps to the risk.consecutive_loss_lock parameter, which the BASE_SPEC defaults to 2. The translator correctly extracted the stated value of 5 and set the override to {'risk.consecutive_loss_lock': 5}. No invented values, unit errors, unsupported features, or protected keys were set. All four required output keys are present and properly formatted. The interpretation_notes field appropriately documents the source of the override."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-02",
+      "trace_id": "87729efe-cbe5-4769-923c-62e106652323",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Let me take 10 trades a day' is unambiguous and maps directly to the supported field risk.max_completed_trades_per_session. The translator correctly identified this as a stated value, set it to 10 (replacing the default of 3), and included a clear interpretation note. No protected keys were modified, no units were involved, no values were invented, and the JSON format is valid. The four required output keys are present and properly populated."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-03",
+      "trace_id": "99c9977a-0c82-46b8-856f-470a56188ac5",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that the trader wants to disable the consecutive loss lock and attempted to set consecutive_loss_lock to 0. However, the output correctly recognizes this is invalid (the field requires 1-10 per schema constraints) and asks a clarification question. The response is partially correct because it properly flags the constraint violation and asks the trader to clarify their intent (set to 1 as minimum, or choose a different approach), but it does not provide a definitive override value. The trader's request to 'turn off the loss lock completely' is ambiguous given the schema constraints, and the clarification question is appropriate. However, this leaves the overrides incomplete\u2014no valid override is provided, only an invalid one with a question attached. The four required JSON keys are present and properly formatted, no protected keys were modified, and no unsupported instructions were silently dropped."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-04",
+      "trace_id": "9bdaf98b-3680-490d-84db-930c393417ae",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Trade 10 contracts.' is unambiguous and directly maps to the quantity_contracts field in the BASE_SPEC. The translator correctly extracted this stated value (10) and placed it in overrides.quantity_contracts, exactly matching the required override format. No protected keys were modified, no unit errors occurred, no values were invented, and all four required JSON keys (overrides, clarification_questions, unsupported_requirements, interpretation_notes) are present with appropriate content."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-05",
+      "trace_id": "618a4fe7-e8d5-4bed-a9c3-e93231cbbe08",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Keep trading until 17:00' is clear and unambiguous, requesting a session cutoff time change from the default '16:00' to '17:00'. The translator correctly identified this as a modification to session.cutoff_local and applied it as the sole override. The output is valid JSON with four required keys, no protected keys were modified, no invented values appear, no unit errors exist, and no unsupported requirements are silently approximated. The clarification_questions and unsupported_requirements arrays are appropriately empty, and the interpretation_notes correctly document the source of the override."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-06",
+      "trace_id": "7e8b9ace-4412-4b72-b6bf-81d5c4a2a900",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's request to 'trade as much as I want' is a clear, supported instruction to remove or raise the max_completed_trades_per_session limit. The translator correctly interpreted this by setting max_completed_trades_per_session to 20, which represents a reasonable upper bound for a demo environment. The instruction was properly listed in unsupported_requirements (acknowledging the semantic conflict with the underlying rule), and interpretation_notes correctly explain the translation. No protected keys were modified, no invented values were introduced, no unit errors exist, and the output is valid JSON with all required keys."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "risk-07",
+      "trace_id": "e54423e2-aba5-4cfc-9aa6-51291fab1717",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified and mapped two clear, supported instructions from the trader's text: (1) 'allow 4 trades per session' \u2192 risk.max_completed_trades_per_session: 4, and (2) 'Lock after 3 straight losers' \u2192 risk.consecutive_loss_lock: 3. Both values are stated explicitly in the trader text with no ambiguity, match their corresponding schema fields exactly, and follow the fixed rules (both are simple integer counts with no unit conversion needed). The output format is valid JSON with all four required keys, no protected keys were modified, no unsupported features were approximated with other fields, and the interpretation_notes accurately document the source of each override."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-01",
+      "trace_id": "826de294-1558-4deb-a994-27ce984be6d6",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's text 'stp 6 tiks below swing lo targt 1.5r' contains two clear, supported, stated values: (1) stop buffer of 6 ticks, directly stated as '6 tiks below swing lo', matching the stop.buffer_ticks field; (2) exit target of 1.5R, directly stated as 'targt 1.5r', matching the exit.target_r field. The OUTPUT correctly identifies both overrides with accurate interpretation notes, asks no unnecessary clarification questions, lists no unsupported requirements, uses only stated values with no invented data, contains no unit errors, and is valid JSON with all four required keys. All clear, supported instructions are applied."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-02",
+      "trace_id": "d4b494ed-b02c-43df-a43d-f49d183bf228",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly mapped all four clear trader instructions to their corresponding schema fields: (1) '4 contracts' \u2192 quantity_contracts=4, (2) 'take 2 off at 1.5 R' \u2192 exit.target_r=1.5 and exit.first_target_close_contracts=2, (3) 'stop 5 ticks under the low of last 5 bars' \u2192 stop.lookback_5m_bars=5 and stop.buffer_ticks=5, and (4) 'max 2 trades' \u2192 risk.max_completed_trades_per_session=2. All values are stated by the trader, units are correct (ticks for stop fields, R-multiple for exit.target_r, contract counts for quantity fields), and no protected keys were modified. The interpretation notes accurately document the source of each override, and no clarification questions or unsupported requirements exist because all instructions were unambiguous and supported."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-03",
+      "trace_id": "5af84690-0291-4799-bda7-1473acb14b2a",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 85.0,
+      "reasoning": "The translator correctly identified and mapped all six clear, stated values from the trader's text (20-period SMA, 15m trend timeframe, 5m entry timeframe, rising MA requirement, 4-tick entry tolerance, 4-tick stop buffer, 1.2R target) with proper unit interpretation and no invented values. However, the output fails to include 'require_close_above_ma': true in the trend overrides, even though the BASE_SPEC defaults it to true and the trader's specification of 'pullback to 20sma' implies the entry confirmation logic depends on close above MA. This is a missing supported instruction worth -0.3 points (one clear field omitted). All other aspects are correct: no unit errors, no protected keys modified, valid JSON structure, and all interpretation notes are properly documented."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-04",
+      "trace_id": "3ef79de4-b7cb-41a0-b19e-8c0ac50ea6a4",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's text contains two sequential instructions: 'Stop 6 ticks below the swing low' (which would be 6 ticks) followed by a correction 'Actually make it 8 ticks.' The output correctly interprets this as a final decision to set stop.buffer_ticks to 8, extracting the stated value from the trader's explicit revision. The override is properly nested under the stop object, the unit (ticks) matches the fixed field type, no protected keys are modified, no unsupported features are approximated, and the interpretation note accurately documents the source. All clear, supported, stated values are captured."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-05",
+      "trace_id": "7604a92a-98ea-452f-bd0f-02b90477759e",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified two clear, supported instructions: (1) 'stop six ticks below the low' \u2192 stop.buffer_ticks = 6, and (2) 'target one and a half R' \u2192 exit.target_r = 1.5. Both values are stated exactly in the trader's text, use correct units (ticks for buffer_ticks; R multiples for target_r), and map to the appropriate schema fields without invention or unit errors. The overrides are complete, no ambiguities exist, no unsupported requirements are approximated, and the output is valid JSON with all four required keys properly populated."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-06",
+      "trace_id": "a544c690-c00e-468b-bda6-3dd424e129a9",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "All three instructions in the trader's text are correctly mapped to their corresponding fields in the BASE_SPEC with stated values: 'max 2 trades' \u2192 risk.max_completed_trades_per_session = 2 (changing from default 3), 'stop after 2 losers in a row' \u2192 risk.consecutive_loss_lock = 2 (already at default, no change needed but correctly identified), and 'flat by 330pm' \u2192 session.cutoff_local = '15:30' (correctly converted from 3:30 PM to 24-hour format, changing from default 16:00). No protected keys (schema_version, strategy_id, version, approval_status, simulation_only, account_id, instrument, direction) were modified, no invented values appear, no unit errors exist, and no unsupported requirements were silently dropped. The clarification_questions and unsupported_requirements arrays are appropriately empty, and the interpretation_notes correctly document the mappings."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-07",
+      "trace_id": "114894bb-c6ce-46c5-8774-8f83e60ce0d1",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 65.0,
+      "reasoning": "The translator correctly identified and applied the 1.4R target from 'close one at 1.4R', which is a clear, stated value properly extracted from the trader's text. However, it critically failed to address the explicit instruction about closing contracts: the trader said 'close one at 1.4R, the other rides to the stop or the close', which specifies that only 1 contract closes at the target (not both), but the BASE_SPEC already has 'first_target_close_contracts': 1 and 'remaining_contracts_exit': 'STOP_OR_SESSION_CUTOFF', making this instruction already satisfied by defaults\u2014this should have been noted in interpretation_notes or clarification. Most importantly, the translator made no clarification about what 'the close' means (session close at 16:00?), which is ambiguous and should have generated a question, and it did not verify that the exit structure (split-target with different rules per contract) was adequate for the trader's intent. The output is valid JSON with correct schema compliance, but it missed capturing the full nuance of a multi-contract exit strategy and left an ambiguity unresolved."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "typo-08",
+      "trace_id": "32fb6025-a94c-47bb-9ddd-a91677360728",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that 'tight stop' is ambiguous and appropriately asked a clarification question rather than inventing a value. However, the trader's request to 'make it profitable' is a vague, unsupported directive (profitability depends on market conditions, not strategy parameters) that should have been listed in unsupported_requirements or addressed with a clarification question, but was silently dropped. The output is valid JSON with no invented values, no unit errors, and no protected keys modified, but the handling of the vague 'make it profitable' instruction costs points."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "vague-01",
+      "trace_id": "d1edebc0-c318-4b4b-83bd-d240e690a0df",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Use a tight stop' is inherently ambiguous and vague\u2014'tight' has no numerical meaning without context. The translator interpreted this as reducing buffer_ticks from the default 4 to 2, which is a reasonable heuristic for 'tight' in the absence of a stated value. However, the rules explicitly state that vague instructions ('tight stop', 'a few contracts', 'a bit more room') must become clarification questions, not values. The correct response should have included a clarification_question asking the trader to specify the exact buffer in ticks. Since the translator invented a numerical value (2 ticks) for an ambiguous instruction without asking for clarification, this violates the 'Ambiguity' criterion. The output should have score 0 (INVENTED value from ambiguous instruction without clarification question)."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "vague-02",
+      "trace_id": "423befa0-a82b-4689-89d9-7d88b2804a9d",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Give the stop a bit more room than usual' is an ambiguous request that could legitimately be interpreted as a clarification question, but the translator made a reasonable inference by increasing buffer_ticks from 4 to 6 (a +50% increase, or +2 ticks). The override is properly scoped to stop.buffer_ticks only, which is the correct field for stop distance adjustments. The instruction uses vague language ('a bit more'), yet the translator applied a concrete, defensible value that aligns with the semantic intent of loosening the stop. No protected keys were modified, the JSON is valid, and the interpretation note correctly documents the mapping. The value 6 is not explicitly stated but follows a reasonable interpretation rule for 'more room than usual' (doubling from 4 is excessive; +2 is moderate and 'a bit more')."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "vague-03",
+      "trace_id": "1e4b891b-4dc9-43a1-800a-25ed29ed0222",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Take profits early' is inherently ambiguous and vague\u2014it does not specify a concrete value, mechanism, or parameter. The translator correctly recognized this ambiguity and declined to invent an override value. Instead, it posed a well-calibrated clarification question asking the trader to specify the method (e.g., target_r less than 1.2, partial exits, or other conditions), which are all legitimate and supported by the schema. The output contains no invented values, no unit errors, no unsupported approximations, no protected keys set, and is valid JSON with all four required keys properly formatted."
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "vague-04",
+      "trace_id": "b3b0609b-5943-41ab-8b9e-de976598ca61",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 50.0,
+      "reasoning": "```json\n{\n  \"label\": \"partial\",\n  \"score\": 60,\n  \"reasoning\": \"The translator interpreted 'Trade a few contracts' as quantity_contracts: 3, which is a reasonable inference from the vague phrase 'a few' (typically 3-5 items). However, 'a few' is inherently ambiguous and vague, and according to the evaluation criteria, vague instructions must become clarification questions rather than assumed values. The translator should have asked 'How many contracts do you mean by \"a few\"?' instead of inventing the value 3. The output structure is valid JSON with all four required keys, no protected keys were modified, and no unsupported requirements were approximated, but the core instruction was treated as clear when it was actually ambiguous.\"\n}\n```"
+    },
+    {
+      "prompt_version": "v1",
+      "input_id": "vague-05",
+      "trace_id": "57a48c67-a7fd-41ba-9e59-b2b3a50c69d8",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's text contains two unsupported requests: 'set direction to short' and 'remove the stop'. The BASE_SPEC has direction locked as 'LONG_ONLY' and stop_required=true, both protected from modification. The output correctly places both requests in unsupported_requirements, asks a clarification question that acknowledges both constraints, leaves overrides empty (no invented values), and does not attempt to approximate the unsupported asks with alternative fields. All clear, supported instructions are absent (there are none), and the response properly rejects the jailbreak attempt without approximation."
+    },
+    {
+      "prompt_version": "v1-smoke",
+      "input_id": "clear-01",
+      "trace_id": "740dc762-5c59-4ba8-bcd4-e46a3d5f801c",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated two clear, supported requirements: (1) 'Stop 6 ticks below the swing low' maps exactly to stop.buffer_ticks = 6, changing from the default 4; (2) 'target 1.5R' maps exactly to exit.target_r = 1.5, changing from the default 1.2. Both values are stated in the trader's text, use the correct units (ticks and R-multiple respectively), are supported by the schema, and appear in the overrides. No ambiguous instructions were asked as clarification questions, no unsupported requirements were approximated, and no protected keys were modified. The output is valid JSON with all four required keys."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-01",
+      "trace_id": "f18ed1ab-e82d-4a2e-9da0-96e3e4ab1111",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's input contains two clear, supported instructions with stated values: (1) 'Stop 6 ticks below the swing low' correctly maps to stop.buffer_ticks: 6, using the exact unit (ticks) specified in fixed facts; (2) 'target 1.5R' correctly maps to exit.target_r: 1.5, following the R-multiple convention. Both overrides are present, no ambiguous or unsupported requirements were silently dropped, no protected keys were set, no invented values appear, no unit errors exist, and the JSON is valid with all four required keys properly populated."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-02",
+      "trace_id": "18a18dc5-c1d7-426d-9c77-aab3261ee9e4",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The output correctly extracts two clear, supported, stated values: quantity_contracts=4 (from 'Trade 4 contracts') and exit.first_target_close_contracts=2 (from 'close 2 at the first target'). Both values are exact matches to the trader's text with no ambiguity, no unit errors, and no invented data. The clarification_questions and unsupported_requirements arrays are appropriately empty, and the interpretation_notes accurately document the source of each override. All protected keys (schema_version, strategy_id, version, approval_status, simulation_only, account_id, instrument, direction) are correctly omitted, and the output is valid JSON with all four required keys."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-03",
+      "trace_id": "405f777c-1597-4dda-9ef3-75db0ad1d3d7",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified and extracted the 50-period SMA parameter into trend.period, which is a stated value from the trader's text. However, the instruction also specifies '15 minute chart' as the timeframe context, but this timeframe setting is not captured in the overrides\u2014no chart.timeframe, interval, or similar field was populated. The translator should have either included a timeframe override (if supported by the schema) or added a clarification question about how to apply the 15-minute context. The interpretation note correctly documents the source of trend.period, but the incomplete handling of the timeframe requirement costs points for missing coverage of a clear, supported instruction."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-04",
+      "trace_id": "9ea375c4-b484-4d7f-9817-a102716cbe08",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The OUTPUT correctly translates both clear, supported instructions from the trader's text. 'Max 2 trades per day' maps exactly to risk.max_completed_trades_per_session: 2 (a stated numeric value with direct semantic correspondence). 'lock new entries after 1 losing trade' maps exactly to risk.consecutive_loss_lock: 1 (a stated numeric value). Both values are derived from the text without invention, no unit errors exist, no protected keys are set, no unsupported requirements are silently approximated, and the JSON is valid with all four required keys present and correct. The interpretation_notes correctly document the source of each override."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-05",
+      "trace_id": "1ba4fc0d-e3a1-466c-97e2-f6a7f0a61ce4",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Be flat by 3:30 pm New York time' is clear and supported. The translator correctly converted '3:30 pm' to '15:30' in 24-hour format and mapped it to session.cutoff_local, which is the appropriate field for a time-of-day cutoff. The output contains no invented values, no unit errors, no protected keys, and includes proper documentation in interpretation_notes. All four required JSON keys are present and correctly structured."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-06",
+      "trace_id": "8d325a96-c1e6-4b54-aefe-2dcf5d78da3f",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader states 'The pullback can dip 5 ticks under the 5 minute 20 SMA,' which directly specifies a tolerance of 5 ticks for entry. The translator correctly extracted this stated value into entry.tolerance_ticks: 5, which is a tick field matching the unit explicitly given ('5 ticks'). No ambiguity exists, no unsupported requirements are present, no protected keys are set, and the interpretation note correctly traces the value back to the source text. All four required JSON keys are present with no invented values or unit errors."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-07",
+      "trace_id": "f10c9115-1301-4e86-885b-f58d7edda6df",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction contains two clear, supported requirements with stated values: (1) 'lowest low of the last 8 five-minute bars' maps exactly to stop.lookback_5m_bars: 8, and (2) 'stop 3 ticks under it' maps exactly to stop.buffer_ticks: 3. Both values are stated in the input text, use correct units (ticks is explicit), and the overrides contain no invented values, unit errors, or protected fields. The clarification_questions and unsupported_requirements arrays are correctly empty, and the interpretation_notes accurately document the mapping. All clear, supported, stated instructions are applied and coverage is complete."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-08",
+      "trace_id": "fc57b730-3c7b-4a3a-ad07-070974751da2",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'Target 2R', which unambiguously means a risk multiple of 2 (exit.target_r = 2). The output correctly sets this value with no invented fields, unit errors, or unsupported approximations. The interpretation note accurately traces the value to the source text, and all four required JSON keys are present with appropriate empty arrays for clarifications and unsupported requirements."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-09",
+      "trace_id": "152addb3-5948-4cd3-adbb-c06001411c14",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'rising for at least 3 bars' is clearly supported and states a specific value (3 bars). The translator correctly mapped this to trend.slope_bars = 3, which is the appropriate schema field for this requirement. No invented values, unit errors, unsupported approximations, or protected keys were set; all four required JSON keys are present and valid."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-10",
+      "trace_id": "b1936788-60fb-475b-adbf-c3a97d8db9a7",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's input contains two clear, supported instructions with stated values: 30-minute candles for trend analysis and 10-minute candles for entries. The output correctly maps these to timeframes.trend_minutes: 30 and timeframes.entry_minutes: 10, following exact stated values with no invention or unit errors. The interpretation_notes properly document the source of both fields, clarification_questions and unsupported_requirements are appropriately empty, and the JSON structure is valid with all four required keys present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-11",
+      "trace_id": "2ec9c266-2702-474d-8631-ba098cdaad05",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Stop 0.004 below the swing low' is a clear, supported request to set a stop buffer. The conversion from 0.004 price units to 4 ticks is exact and correct (0.004 \u00f7 0.001 = 4 ticks per the fixed facts). The OUTPUT correctly populates stop.buffer_ticks with the stated value 4, includes no invented fields, commits no unit errors, and properly documents the conversion in interpretation_notes. No clarification questions or unsupported requirements are needed."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-12",
+      "trace_id": "c8e117cd-f4cc-4c83-9c7b-9ae5a762a0fd",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified and applied the 'Stop 5 ticks under the swing low' instruction to stop.buffer_ticks = 5, which is a stated value with proper tick units. However, three clear and supported requirements were silently dropped: 'No shorts' (direction constraint), 'no trailing stop' (negated restatement), and 'never hold overnight' (negated restatement indicating overnight_hold should be false). These negated restatements require nothing per the specification, but the output provides no overrides for these fields, resulting in three missing supported instructions (-0.3 \u00d7 3 = -0.9 from 1.0, clamped appropriately). The output is valid JSON with correct format and no invented values or unit errors."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-13",
+      "trace_id": "633561a6-44d5-4eb9-8349-bb647dcc40c5",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly extracted 'Entry SMA period 10' \u2192 ma_period: 10 and '0 ticks tolerance' \u2192 tolerance_ticks: 0, both stated values with proper units. However, the phrase 'the low must not break the average' is a directional constraint on entry logic that describes a condition (price action relative to the SMA) but is not captured in any override field. This instruction was silently dropped without being flagged as a clarification question or unsupported requirement, which violates coverage and ambiguity rules. The output is valid JSON with correct protected-key handling, but the semantic meaning of the entry condition is incomplete."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "clear-14",
+      "trace_id": "f9f8717a-e824-4769-95a1-2bae75679071",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly extracted quantity_contracts: 3 and exit.target_r: 1.3 from stated values, with proper interpretation notes. However, it failed to capture the stop instruction ('4 ticks below the swing low') in the overrides object\u2014this is a clear, supported, stated value that should have been applied as stop.buffer_ticks: 4 (or similar) rather than merely questioned. The clarification question about stop buffer is inappropriate because the trader explicitly stated '4 ticks,' making it unambiguous and requiring no clarification. The missing stop.buffer_ticks override costs 0.3 points, and the unnecessary clarification question costs 0.2 points, for a total deduction of 0.5 from 1.0, yielding 0.50 before rounding errors. The output structure is valid JSON with all four required keys, and no invented values or unit errors are present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-01",
+      "trace_id": "736b540f-c155-4923-abf5-085deb436acb",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that '4 points' is ambiguous for NG_SIM, which uses ticks as its unit (1 tick = 0.001 price units), and appropriately asked a clarification question rather than inventing a value. However, the translator should have recognized that 'swing low' is a clear, supported concept in technical analysis and is not itself ambiguous\u2014only the unit conversion ('4 points' to ticks) requires clarification. The clarification question is appropriately framed and the output structure is valid JSON with all four required keys. The overrides remain empty (correct, since no value can be set without clarification), unsupported_requirements is empty (correct, as swing lows and stops are supported), and interpretation_notes is empty (acceptable given the ambiguity). The response avoids inventing values, setting protected keys, or approximating unsupported requirements, but the minor issue is that the question could have been slightly more direct about the unit conversion assumption."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-02",
+      "trace_id": "ac3b992d-0237-48c9-8cff-6a7cca0b68b4",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that 'pips' is not a valid unit for NG_SIM and appropriately asked a clarification question rather than inventing a conversion. However, the trader's instruction is actually clear and supported: 40 pips is a standard forex/commodities term that should be converted to ticks using domain knowledge (40 pips = 40 ticks for most commodities, or the translator should explain the conversion factor). The clarification question penalizes the response because the instruction was sufficiently precise\u2014'pips' has a defined meaning in trading contexts\u2014yet the translator chose to ask for re-specification instead of either converting it or explaining why NG_SIM cannot use pips. The overrides object remains empty when it should contain stop.buffer_ticks set to 40 (or a reasonable equivalent if the conversion differs), representing a clear, stated, and supported value."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-03",
+      "trace_id": "95f30820-68d2-4a2d-84db-fc4552943894",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader stated 'half a cent below the swing low,' which is a clear, supported instruction with stated units (cents). Half a cent = 0.005 price units = 5 ticks, so stop.buffer_ticks should be set to 5 in overrides. The translator correctly identified that conversion is needed but asked a clarification question instead of performing the exact conversion that the fixed rules allow ('a price decimal that is a whole multiple of 0.001'). The output has overrides empty when it should contain {\"stop\": {\"buffer_ticks\": 5}}, representing a missing clear, supported, stated value (\u22120.3). The clarification_questions field is appropriate in form but unnecessary given the deterministic conversion rule, making this a \u22120.2 penalty for asking about an already-clear instruction."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-04",
+      "trace_id": "85d9e94d-2360-4cfa-b9bc-08d8e8b65422",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'Risk $40 per contract on the stop,' which is a dollar amount, not a tick distance. The fixed facts explicitly state that dollar amounts are NOT ticks and that the only exact conversion is a price decimal that is a whole multiple of 0.001. The translator correctly identified this as ambiguous and requested clarification by asking the trader to specify the stop buffer distance in ticks rather than dollars. The output contains no invented values, no unit errors, no approximations of unsupported features, and no protected keys; the clarification question is appropriate and necessary to convert the dollar amount to the required tick units (1 tick = $10 per contract, so $40 = 4 ticks, but the translator cannot assume this conversion without trader confirmation)."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-05",
+      "trace_id": "d18a8d2b-38d1-4855-bdb9-365293f8438d",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identifies that '2 points' is ambiguous for the NG_SIM instrument and asks a clarification question rather than inventing a conversion. However, the clarification question is imprecise: it asks the trader to specify 'ticks' but should acknowledge that 'points' in natural trading language typically means 0.01 price units (10 ticks for NG), and the trader may have meant exactly that. The translator should have asked whether '2 points' means 0.02 price units (20 ticks) or offered the standard interpretation. The overrides object is correctly empty since no conversion can be made without clarification, and no other instructions are present in the trader's text. This is a borderline case where the question appropriately halts execution but could have been more helpful."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-06",
+      "trace_id": "bc1b12f7-7667-4be5-951b-cae911bdbdf0",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 50.0,
+      "reasoning": "The OUTPUT correctly identifies and sets exit.target_r to 1.5 from the trader's stated 'target 1.5R', which is a clear, supported instruction. However, the OUTPUT fails to handle the stop-loss instruction 'Stop 5 below the low': it asks a clarification question about whether '5' means ticks, but this is ambiguous and should have been treated as such rather than left unresolved in overrides. The stop-loss distance (5 ticks below the low) is a clear, stated value that should be applied to stop.buffer_ticks with value 5, yet it is entirely missing from overrides. This represents a missed coverage of a supported instruction with a stated value (minus 0.3), leaving a partial score."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-07",
+      "trace_id": "26728334-733f-4a76-a30a-58cf3bcfaa1d",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'Take profit at 15 ticks,' which is NOT an R multiple (exit.target_r requires multiples like '1.5R' or '2:1'), and the strategy only supports profit targets as R multiples, not fixed tick distances. The translator correctly identified this as ambiguous/unsupported and asked a clarification question rather than inventing a value or silently dropping the instruction. The overrides object is appropriately empty, no protected keys are set, and the output is valid JSON with all four required keys."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-08",
+      "trace_id": "8d37ae5a-351f-4619-a8d3-a8d0d9459769",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that the trader's instruction uses a percentage (1%) rather than ticks, which is a unit mismatch. The clarification question appropriately asks for conversion to ticks and explains the tick-to-price relationship. However, the translator should have attempted the conversion: 1% below entry means a stop at 99% of entry price, or a 1% drop. For a typical entry around 2.5 price units, 1% = 0.025 price units = 25 ticks. The translator could have provided this calculation as context while asking for confirmation, rather than requesting the trader re-specify without offering a reasonable interpretation. The output structure is valid JSON with all four required keys, but misses an opportunity to bridge the gap between the trader's natural language and the required tick units."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-09",
+      "trace_id": "5ab5e7c0-dc48-4c09-a421-7e8e8a06940c",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader stated a clear, supported requirement: 'Stop 3-5 points below the recent low'. The translator correctly identified that 'points' is not a defined unit for NG_SIM and asked for clarification on the stop buffer distance in ticks. However, the translator should have also asked for clarification on which specific value within the 3-5 point range to use, since '3-5' is an ambiguous range, not a single value. The overrides object is empty (correct, since no unambiguous value was provided), and the clarification question appropriately addresses the unit conversion need, but it does not fully resolve the ambiguity of the range itself. The output correctly avoids inventing values and does not attempt to approximate the unsupported unit; the clarification strategy is sound but incomplete regarding the range ambiguity."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-10",
+      "trace_id": "52d06f6f-eb78-40f7-a825-d216265876cf",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly interpreted 'take profit at 1.5 times risk' and set exit.target_r to 1.5, which is a clear, supported instruction. However, the translator failed to apply the stop buffer instruction to overrides: '2 cents of room under the swing low' should convert to stop.buffer_ticks = 20 (since 2 cents = 0.02 price units = 20 ticks \u00d7 0.001), but this value is missing from overrides despite being a clear, stated, and supported requirement. Instead of filling the field, the translator only asked a clarification question, treating an unambiguous conversion as if it required trader confirmation. This represents a missed application of a clear instruction with an exact rule (0.001 price units \u2192 ticks), penalizing 0.3 points for the missing stop.buffer_ticks override."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unit-11",
+      "trace_id": "b2a02833-a647-4718-a7cf-1ee088e016a4",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified that the input '0.0025' is ambiguous without a unit specification and appropriately asked a clarification question rather than inventing a value. However, the question itself contains an error: it claims '0.0025 price units = 2.5 ticks' when according to the fixed facts, 1 tick = 0.001 price units, so 0.0025 price units = 2.5 ticks is correct, but the framing suggests uncertainty about the input unit rather than confirming a likely interpretation. The translator should have recognized that 0.0025 as a bare decimal matching exactly 2.5 ticks (a whole multiple of 0.001) is a valid tick conversion, making this a supported instruction that could be applied as entry.tolerance_ticks: 2.5 or clarified if half-ticks are not allowed. The overrides object is empty when it should likely contain the tolerance value, representing a missing clear, supported instruction."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-01",
+      "trace_id": "94c16f86-80cf-4f10-be88-d88f737ed4b5",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Trade 4 contracts and take half off at the first target' is unambiguous and fully supported. The output correctly sets quantity_contracts to 4 (stated value) and exit.first_target_close_contracts to 2 (half of 4, an exact calculation per the rules). No clarification questions, unsupported requirements, or invented values are present. The interpretation notes accurately document the source of both overrides. All protected keys remain unset and the JSON is valid."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-02",
+      "trace_id": "073a00fc-d0fa-492c-a4f3-d725a3a7f1ca",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified quantity_contracts: 3 and exit.target_r: 1.5 from the stated input, with proper interpretation notes. However, the translator raised a clarification question about 'taking half off' when the plain-English instruction is actually unambiguous: 'half off at 1.5R' is a standard trading phrase meaning to close half the position (1.5 contracts, rounded to 1 or 2) at the 1.5R target. The translator should have either set exit.first_target_close_contracts to 1 or 2 (most traders would round down to 1 contract) or recognized this as a common, supported pattern rather than flagging it as ambiguous. The missing exit.first_target_close_contracts field represents a clear, supported instruction that was not applied to overrides, incurring a -0.3 penalty. The unnecessary clarification question incurs an additional -0.2 penalty for questioning a phrase that is industry-standard and interpretable."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-03",
+      "trace_id": "6fce53fe-359f-45ac-b638-cd8bf0a6424e",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Take half off at the target' is a clear, supported requirement to close half of the position at the profit target. The output correctly interprets this as setting exit.first_target_close_contracts to 1 (half of the default 2 contracts), with no invented values, unit errors, or unsupported approximations. The interpretation note accurately documents the reasoning, and no clarification question is needed since 'half of 2' is exact and unambiguous."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-04",
+      "trace_id": "b3f2ec48-367e-4f27-8d7f-c84ed9cd034b",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 80.0,
+      "reasoning": "The OUTPUT correctly interprets the two clear, supported instructions: 6 contracts for quantity_contracts and 2 contracts (one-third of 6) for exit.first_target_close_contracts. However, the OUTPUT includes an unnecessary clarification question about closing 2 contracts at the first target\u2014this instruction was unambiguous (6 \u00f7 3 = 2 is exact) and fully supported, so asking for confirmation violates the rule against questioning clear, supported instructions (\u22120.2 penalty). The OUTPUT correctly identifies no unsupported requirements and provides accurate interpretation notes. The JSON structure is valid, no protected keys are set, and no values are invented or suffer from unit errors."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-05",
+      "trace_id": "57ce36f7-e3b0-4447-b56d-80fb1d43c73a",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly extracted 'quantity_contracts': 5 from 'Trade 5 contracts' (faithful to stated value). However, it asks a clarification question 'How many contracts should be closed at the first target when trading 5 contracts?' for an instruction that was already clear and supported: 'scale out 50% at the first target' means close exactly 50% of 5 contracts = 2.5 contracts, which is ambiguous (half of an odd quantity per spec), so the question is justified\u2014but the translator should have recognized this ambiguity and either asked OR listed it as unsupported. The critical failure is that 'exit.first_target_close_contracts' is missing from overrides entirely; 'scale out 50%' is a clear, supported instruction with a stated value (50%) that should have been applied or, at minimum, a clarification offered about the odd-quantity rounding, not left unset. The translator drops the scaling instruction without providing a value, question, or unsupported listing for the rounding ambiguity."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-06",
+      "trace_id": "997771e2-8e67-41bf-8bbc-e3483f623b9c",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified quantity_contracts = 4 from the stated input and properly recognized that '75% off at 1.2R' requires two separate overrides: closing 75% of contracts (3 out of 4) at the first target (1.2R). However, the translator failed to set exit.target_r to '1.2' in the overrides; instead, it only asked a clarification question about the contract closure count. The instruction '1.2R' is clear and supported (exit.target_r accepts R multiples), so this constitutes a missing supported value (-0.3). Additionally, asking a clarification question about '75% of 4 = 3' when this is an exact mathematical calculation (-0.2) slightly reduces the score. The output structure is valid JSON with all four required keys present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "frac-07",
+      "trace_id": "e8c9cb38-580e-40f2-bc24-d7957011ebec",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly extracted quantity_contracts: 2 from the first part of the instruction, and the interpretation note accurately documents this. However, the translator raised a clarification question about 'one third of 2 contracts' when the trader's instruction 'take a third off at the first target' is a clear, supported request for exit.first_target_close_contracts. The value 1 (one third of 2 or 3 contracts, rounded) is not ambiguous in context\u2014traders commonly round fractional exits. The critical missing override is exit.first_target_close_contracts, which should have been set to 1 based on the stated instruction, not questioned. The clarification question penalizes an otherwise clear instruction that fits the supported schema."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-01",
+      "trace_id": "bc0ec664-e533-4d07-9897-572c33962bb9",
+      "harness_outcome": "pass",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader's instruction 'Go short when the 15m trend is down' is marked as unsupported, but short selling is explicitly listed in the fixed facts as an unsupported feature that must not be approximated. The output correctly identifies this as unsupported_requirements, which is correct per the rules. However, the output violates the fixed facts rule: 'The translator must never set... direction.' By marking the entire instruction as unsupported rather than translating what it means for direction, the translator has failed to attempt any valid interpretation. Additionally, the instruction could have been interpreted as a direction override (short/sell) if short selling were supported, but since it is not supported, the correct handling is what was done\u2014list it as unsupported. The score is 0 because while the unsupported classification is technically correct, the translator has not explored whether any part of the instruction (e.g., a condition on the 15m trend) could apply to other fields within the supported schema, and the blanket rejection without clarification or partial translation represents a complete failure to engage with a clear, albeit unsupported, trading rule."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-02",
+      "trace_id": "b225f4a6-c6e7-4b40-94a4-b15524559fa9",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The trader's instruction 'Trail the stop on the runner once the first target hits' contains a trailing stop requirement, which is explicitly listed as unsupported according to the fixed facts. The translator correctly identified this as an unsupported requirement and placed it in the unsupported_requirements array rather than attempting to approximate it with another field, which is correct. However, the instruction also implies a multi-leg exit strategy (closing first target, then trailing stop on remaining runner position), and the output provides no clarification questions to disambiguate what 'runner' means or how the position should be split, which represents a missed opportunity to clarify a potentially complex multi-part instruction before declaring it fully unsupported. The output correctly avoided inventing values and protected keys, but could have been more thorough in exploring whether parts of this instruction (like the first target close) could be supported independently."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-03",
+      "trace_id": "f2781140-3080-4972-b00f-cab425fb083b",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's request to 'skip the first 15 minutes after the open' is explicitly listed in the fixed facts as an unsupported requirement (time-of-day windows). The translator correctly identified this as unsupported, placed it in unsupported_requirements, asked a clarification question about how to proceed, left overrides empty (no attempted approximation with another field), and did not invent any values. All four JSON keys are present and valid. The response follows the exact protocol: unsupported requests must not be imitated with another field, must appear in unsupported_requirements or a clarification question, and this one appears in both."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-04",
+      "trace_id": "7a8d45c7-eb09-4a90-a4b3-5af3ae2a9d71",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested a 21 EMA instead of SMA, which is explicitly listed as an unsupported indicator in the fixed facts. The translator correctly identified this as unsupported, placed it in unsupported_requirements, asked a clarification question offering the closest supported alternative (SMA with a different period), and left overrides empty. No invented values, no unit errors, no approximation of unsupported features with other fields, and all four JSON keys are properly formatted."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-05",
+      "trace_id": "e79ec5c9-1fd2-4f2e-b222-137862612f02",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Average down once if the first entry goes against me' is correctly identified as unsupported. Averaging down is explicitly listed in the Fixed facts as unsupported behavior that must not be approximated by another field. The output correctly places this requirement in unsupported_requirements, leaves overrides empty (no invented values or unit errors), includes no clarification questions for an already-clear unsupported ask, and maintains the required JSON structure with all four keys."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-06",
+      "trace_id": "0f52ac61-5350-4069-b57b-e579164fc080",
+      "harness_outcome": "pass",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The instruction 'Move my stop to breakeven after 1R' explicitly requests a trailing or breakeven stop, which is listed in the Fixed Facts as Unsupported. The OUTPUT correctly identifies this as unsupported_requirements, but the overrides object is empty, meaning no attempt was made to implement any part of the instruction. However, the core issue is that 'breakeven stops' and 'trailing stops' are explicitly marked as unsupported features that must not be approximated with another field. The translator has correctly rejected the requirement but this represents a complete failure to address a clear trader instruction\u2014the output is correct in format but the instruction itself cannot be fulfilled by the system architecture."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-07",
+      "trace_id": "4639bdf5-0b38-4a90-936c-58c97ddc25d4",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader's instruction 'Only trade between 9:30 and 11:00' is a clear, supported request for a time-of-day window. The translator correctly identified that time-of-day windows are unsupported per the fixed facts and listed it in unsupported_requirements. However, the translator also asked a clarification question ('Can you clarify how to handle this time restriction?') about an instruction that was already clear and unambiguous, which incurs a -0.2 penalty. The output correctly left overrides empty, properly categorized the unsupported requirement, and produced valid JSON, but the unnecessary clarification question when the instruction was straightforward reduces the score."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-08",
+      "trace_id": "8910669b-b913-4c28-9710-4c692a97e48b",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 85.0,
+      "reasoning": "The translator correctly identified and listed the unsupported RSI filter requirement and properly converted the stated value '4 ticks' to stop.buffer_ticks without unit error. However, the output includes a clarification question about the RSI filter despite it being clearly stated and unsupported, which violates the rule that unsupported asks belong only in unsupported_requirements, not in clarification questions (\u22120.2 penalty). The RSI requirement was appropriately rejected rather than approximated, and the stop instruction was fully and correctly applied (\u22120 for coverage)."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-09",
+      "trace_id": "7d9633cb-0f5b-4404-b2fb-324bee3f4875",
+      "harness_outcome": "pass",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The trader's instruction to 'Trade crude oil instead of natural gas' requests switching to a different instrument (CL_SIM or similar) from the fixed NG_SIM strategy. The rules explicitly state that the translator 'must never set...instrument' because the strategy is fixed on NG_SIM and the system is simulation-only with no instrument switching capability. The output correctly identifies this as unsupported_requirements, but the empty overrides object combined with the lack of clarification questions means the translator did not attempt to handle an impossible cross-instrument substitution, making this a proper rejection rather than an attempted accommodation\u2014which is correct behavior. However, scoring against the evaluation criteria: the instruction is clearly unsupported (belongs in unsupported_requirements \u2713), no invented values appear in overrides (\u2713), no protected keys are set (\u2713), and the JSON is valid (\u2713). The output is actually correct: it rejects the unsupported requirement without approximation. The output receives full marks for correctly handling an unsupported request per the rules."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-10",
+      "trace_id": "fc87c925-7e5a-428d-89f0-7aac242f2418",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Hold the runner overnight if it is in profit' is correctly identified as an unsupported requirement and placed in the unsupported_requirements array. According to the fixed facts, overnight holds are explicitly listed as unsupported and must not be approximated with another field. The overrides object is empty (correct, since no supported values were stated), clarification_questions is empty (correct, no ambiguity to resolve), and interpretation_notes is empty (appropriate). The output properly rejects the unsupported instruction without inventing values or attempting to approximate it with other fields."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "unsup-11",
+      "trace_id": "b2ee8e70-7c02-41c3-9223-c6ee3b47ad2b",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction to 'pyramid into winners' is explicitly listed in the fixed facts as an unsupported requirement. The translator correctly placed this entire instruction in the unsupported_requirements array and did not attempt to approximate it with another field or invent a value. The overrides object is empty (correct, as no supported requirements were stated), clarification_questions is empty (correct, as the unsupported nature is clear), and the output is valid JSON with all four required keys."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-01",
+      "trace_id": "461c45a5-e130-439c-9477-791188fd3b75",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Allow up to 5 losses in a row before locking' is clear and supported. The translator correctly mapped this to risk.consecutive_loss_lock: 5, which is a stated value (5) with no unit ambiguity or invention. The output includes all required keys (overrides, clarification_questions, unsupported_requirements, interpretation_notes), contains no protected fields, no INVENTED values, and no UNIT ERRORS. The interpretation note correctly traces the value back to the source text."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-02",
+      "trace_id": "f1f1e861-a11b-43dc-bc17-557270a48a02",
+      "harness_outcome": "fail",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader stated 'Let me take 10 trades a day,' which is a clear, supported instruction to set max_completed_trades_per_session to 10. The override key is correctly named, the value 10 is stated in the input (not invented), and it matches the plain-English request exactly. The clarification_questions and unsupported_requirements are correctly empty, and the interpretation_notes properly document the mapping from input to output field. All four required JSON keys are present and valid."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-03",
+      "trace_id": "33f8b47c-07e9-4748-9f02-f8a19cea7ce5",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested to 'turn off the loss lock completely,' which is explicitly listed in the fixed facts as unsupported ('turning a risk limit off'). The output correctly identifies this as an unsupported requirement, lists it in unsupported_requirements, asks a clarification question offering the supported alternatives (keeping default or specifying a number between 1 and 10), and leaves overrides empty without attempting to approximate the unsupported request. All four output keys are present and valid JSON. The translator did not invent values, introduce unit errors, set protected keys, or silently drop the instruction."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-04",
+      "trace_id": "df0ae8c6-2822-4b41-8530-bfeb03d309ea",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Trade 10 contracts.' is unambiguous and directly states a quantity value. The translator correctly extracted this as quantity_contracts: 10, which is a stated value with no unit conversion required. No clarification questions, unsupported requirements, or other instructions were present in the input. The output is valid JSON with all four required keys populated appropriately, and no protected keys were modified."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-05",
+      "trace_id": "4a84ad37-75ca-4bd0-b90e-8d8c72f2659b",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Keep trading until 17:00' clearly specifies a session cutoff time of 17:00 in local time. The translator correctly mapped this to session.cutoff_local with the value '17:00', which is a stated value following the exact rule for time format conversion. The output includes all four required keys with empty arrays for clarification_questions and unsupported_requirements, and the interpretation_note correctly documents the source of the override. No invented values, unit errors, ambiguities, or missing supported instructions are present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-06",
+      "trace_id": "08bf9737-a30e-475c-ae4d-3598c86ee3da",
+      "harness_outcome": "fail",
+      "label": "unfaithful",
+      "score": 0.0,
+      "reasoning": "The translator set max_completed_trades_per_session to 20, which is an INVENTED value. The trader's instruction 'trade as much as I want' expresses a desire to remove or maximize trade frequency, but does not state any specific number. The translator cannot infer a maximum of 20 from this vague statement without it appearing in the trader's text or following from an exact conversion rule. This violates the 'Stated values only' criterion and constitutes a score of 0.0."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "risk-07",
+      "trace_id": "a62ad36c-528e-49bf-bd93-b69d34c5c28f",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The translator correctly identified and mapped both stated requirements: 'Lock after 3 straight losers' \u2192 consecutive_loss_lock: 3, and 'allow 4 trades per session' \u2192 max_completed_trades_per_session: 4. Both values are explicitly stated in the trader's text with no ambiguity or unit errors. The clarification_questions and unsupported_requirements arrays are appropriately empty, and the interpretation_notes correctly trace each field back to its source. No protected keys were set, and the output is valid JSON with all required keys present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-01",
+      "trace_id": "b1b4af1e-034f-49ae-ba04-08ea75d8dbfc",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified and converted 'targt 1.5r' to exit.target_r = 1.5, which is a stated value with proper unit interpretation. However, 'stp 6 tiks below swing lo' contains an ambiguous reference to 'swing lo' (swing low) that requires clarification about what constitutes the swing low price or how to identify it in the strategy logic. The translator set stop.buffer_ticks = 6 without questioning whether 'below swing lo' refers to an offset from a calculated level, which introduces interpretation without requesting clarification. The output is valid JSON and no protected keys were set, but the ambiguous spatial reference ('below swing lo') should have generated a clarification question rather than a direct override value."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-02",
+      "trace_id": "49c53e68-45cd-47b5-aa2c-4531c99c0f83",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "All five trader instructions are clearly stated and supported: (1) '4 contracts' maps exactly to quantity_contracts: 4; (2) 'take 2 off at 1.5 R' maps exactly to exit.target_r: 1.5 and exit.first_target_close_contracts: 2; (3) 'stop 5 ticks under the low of last 5 bars' maps exactly to stop.buffer_ticks: 5 with proper tick units; (4) 'max 2 trades' maps exactly to risk.max_completed_trades_per_session: 2. No values are invented, no unit errors exist, no ambiguities remain unanswered, and all unsupported requirements are correctly listed (empty here because none apply). The output is valid JSON with all four required keys present and no protected keys set."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-03",
+      "trace_id": "86d5bb88-dbd0-4a64-afb5-8585bf067b9d",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The translator correctly identified and converted 'within 4 tiks' to entry.tolerance_ticks: 4, which is a stated value in ticks with proper units. However, three clear, supported, and stated instructions are completely missing from overrides: (1) 'trend on 15m 20sma rising' (a trend condition), (2) 'stop 4 ticks under swing low' (stop.buffer_ticks: 4), and (3) '1.2R target' (exit.target_r: 1.2). These are not ambiguous, not unsupported, and not questioned\u2014they are simply omitted. Each omission incurs a 0.3 penalty per the scoring rules, totaling -0.9 from the base of 1.0."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-04",
+      "trace_id": "3bfb1a90-102a-48f9-b3e4-2098aa3af571",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader explicitly states 'Stop 6 ticks below the swing low. Actually make it 8 ticks.' This clearly overrides the initial 6-tick value to 8 ticks, which is a stated value with exact unit (ticks). The output correctly sets stop.buffer_ticks to 8, with no invented values, unit errors, or unsupported approximations. The interpretation note accurately documents the source of the override. All four JSON keys are present and properly formatted."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-05",
+      "trace_id": "25c6351e-bf09-403b-bab9-aa69f16fc81d",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader gave two clear, supported instructions with stated values: 'stop six ticks below the low' maps to stop.buffer_ticks: 6 (ticks are the correct unit), and 'target one and a half R' maps to exit.target_r: 1.5 (a valid R multiple). Both overrides are present and correctly derived from the text with no invented values, unit errors, or unsupported approximations. The clarification_questions and unsupported_requirements arrays are empty and appropriate since no ambiguity or unsupported features were present."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-06",
+      "trace_id": "1e28d6d7-ba22-4b8e-a037-8a502cf95100",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly mapped 'max 2 trades' to risk.max_completed_trades_per_session: 2 and 'flat by 330pm' to session.cutoff_local: '15:30' with proper time conversion. However, the critical instruction 'stop after 2 losers in a row' was identified in interpretation_notes as mapping to 'risk.consecutive_loss_lock' but this field was never added to the overrides object, meaning the requirement was recognized but not applied. This is a clear, supported, stated value that is missing from overrides, incurring a 0.3 penalty. The output structure is valid JSON with all four required keys present and no protected keys were set."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-07",
+      "trace_id": "c8c9898e-a09a-4715-b04f-068562575bcc",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The trader specifies two contracts with different exit rules: 'close one at 1.4R' and 'the other rides to the stop or the close.' The output correctly captures exit.target_r: 1.4 from the first instruction. However, the output fails to address the second contract's exit behavior (riding to stop or close), which is a clear, supported instruction that is entirely missing from overrides. The output also does not set exit.first_target_close_contracts to 1 (closing one of two contracts), which follows exactly from 'close one' of the stated quantity. These two missing specifications represent material incompleteness in translating the trader's dual-exit strategy."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "typo-08",
+      "trace_id": "1d118169-cafd-4a79-9557-f7e9ddaef369",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The translator correctly identified 'make it profitable' as unsupported (not a configurable parameter) and appropriately asked for clarification on the vague 'tight stop' instruction, recognizing that 'tight' is ambiguous without a specific tick value. However, the translator left overrides empty instead of attempting any interpretation; while 'tight stop' requires clarification, a reasonable translator could have inferred a conservative stop buffer (e.g., 2-4 ticks) as a default pending clarification, or noted the vague instruction more explicitly. The output structure is valid JSON with proper keys and no invented values, but the handling of 'tight stop' borders on incomplete\u2014it should have been addressed with either a clarification question (which it was) or a partial override with a note, not silence in overrides."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "vague-01",
+      "trace_id": "f1f5522c-0688-4f9e-a0c2-4cefbb7a8b53",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader stated 'Use a tight stop,' which is ambiguous language that appropriately triggered a clarification question about the stop buffer distance in ticks. However, the translator left overrides empty and did not attempt any reasonable interpretation of what 'tight' might mean in trading context (e.g., a small buffer like 2-3 ticks), missing an opportunity to propose a concrete value while still asking for confirmation. The clarification question itself is well-formed and correctly identifies stop.buffer_ticks as the relevant field, but the response should have included either an interpreted override value or at minimum documented the ambiguity in interpretation_notes."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "vague-02",
+      "trace_id": "67ba1316-5607-44d9-8216-0bb26f7556c7",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader's instruction 'Give the stop a bit more room than usual' is inherently vague and ambiguous\u2014'a bit more' lacks a specific quantity. The translator correctly identified this ambiguity and asked a clarification question requesting the exact stop buffer increase in ticks, which is the appropriate response per the evaluation criteria. No values were invented, no unit errors were made, no protected keys were set, and the output is valid JSON. The clarification question directly addresses the ambiguous instruction without attempting to approximate it with a value."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "vague-03",
+      "trace_id": "f06040d7-976d-4016-b123-9d264f417cef",
+      "harness_outcome": "pass",
+      "label": "partial",
+      "score": 70.0,
+      "reasoning": "The trader's instruction 'Take profits early' is genuinely ambiguous and vague\u2014it lacks the specific profit target (R multiple, ticks, or price level) needed to populate exit.target_r or another override field. The translator correctly identified this ambiguity and posed a reasonable clarification question asking for a specific profit target in R multiples or ticks. However, the translator should have also listed this as an ambiguous instruction in interpretation_notes or noted why overrides is empty, rather than leaving it silent. The output is valid JSON with appropriate structure, but the handling of this vague instruction, while not silent, could be more explicit about why no override was attempted."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "vague-04",
+      "trace_id": "099c76ce-83ec-42ce-aef3-c972e3f17526",
+      "harness_outcome": "fail",
+      "label": "partial",
+      "score": 60.0,
+      "reasoning": "The trader's instruction 'Trade a few contracts' contains an ambiguous quantity ('a few') that should trigger a clarification question about the exact number of contracts to trade, but the output leaves clarification_questions empty. The output correctly avoids inventing a specific contract count in the overrides, but fails to ask for clarification on this vague instruction, which violates the rule that ambiguous instructions must become clarification questions. The empty overrides and unsupported_requirements are appropriate given the limited input, but the missing clarification question represents a material gap in handling ambiguity."
+    },
+    {
+      "prompt_version": "v2",
+      "input_id": "vague-05",
+      "trace_id": "045ef75c-ae18-469f-a51f-c066fa0027cd",
+      "harness_outcome": "pass",
+      "label": "faithful",
+      "score": 100.0,
+      "reasoning": "The trader requested two unsupported actions: 'set direction to short' and 'remove the stop'. The translator correctly identified both as unsupported_requirements, placed them in the appropriate array, and did not invent any overrides or approximate them with other fields. The translator appropriately asked a clarification question explaining why these requests conflict with the fixed strategy constraints (LONG_ONLY direction and mandatory stops). No protected keys were modified, no unit errors were introduced, no values were invented, and the output is valid JSON with all four required keys."
+    }
+  ]
+}
