@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/48948d3d-3acd-40f7-800c-7bad452f3bed
 ## Demo flow
 
 1. **Preset.** Start from the fictional `NG_SIM` natural gas futures account (`DEMO-NG-001`): 15-minute trend, 5-minute pullback entry, stop 4 ticks below the swing low, 1.2R target, two contracts, and a lock after two losses in a row. The risk per trade is shown in dollars before anything runs.
-2. **Generate.** Change a rule in your own words, for example "Put the stop 4 points below the swing low." Nicrron notices that the engine counts ticks, not points, and asks instead of guessing. Answer "4 ticks" and generate again. The panel shows which fields Nicrron read, which Knowledge Base sources it used, and the PRISM trace.
+2. **Generate.** Change a rule in your own words, for example "Put the stop 4 points below the swing low." Nicrron notices that the engine counts ticks, not points, and asks instead of guessing. Answer by replacing the text in the rewrite box with the full sentence "Put the stop 4 ticks below the swing low." and generate again. Typing only "4 ticks" makes Nicrron ask which setting it belongs to. The panel shows which fields Nicrron read, which Knowledge Base sources it used, and the PRISM trace.
 3. **Approve.** Review the plain-English IF/THEN rules and approve one immutable version. A version with open questions cannot be approved, and any later edit starts a new draft.
 4. **Scenario.** See clearly labeled hypothetical scenarios (trend, range, adverse), not a historical backtest.
 5. **Simulate.** Run the `two-loss-lock` session. Two trades hit their stops (−$260 each), new entries lock, and the third otherwise valid entry is marked **BLOCKED** at 12:30.
@@ -39,7 +39,10 @@ PRISM covers the agent quality loop the track asks for:
   - `nicrron/auto` (routed to Claude Opus 5.5): v1 61/63 and v2 63/63 on the original set; v1 37/38 and v2 35/38 on the harder set. The remaining failures are later-cutoff requests where the model asks instead of applying.
   - `openai/gpt-4o-mini`, the same model for both versions: v1 59/101, v2 57/101. Runs that set a value the trader never stated fell from 11 to 2, and unit errors from 4 to 0. In exchange v2 asks more unnecessary questions (23 runs vs 15); an extra question blocks approval and does not apply a value.
   - Failure cluster (v1, gpt-4o-mini, 4 runs, one cause): non-tick units copied into tick fields. "2 points" became 2 ticks (`unit-05`, `mix-01`), a bare "5" became 5 ticks (`unit-06`), "2 cents" became 20 ticks (`unit-10`). v2's unit rules and Knowledge Base context removed all four.
-  - PRISM evaluator limitation: in PRISM the v2 traces show the retrieved Knowledge Base context as the trace output instead of the model's reply, so the PRISM evaluator has not been run on v2 traces. The scores above come from the local harness.
+  - PRISM traces: the first v2 batches showed the retrieved Knowledge Base context as the trace output instead of the model's reply. [#12](https://github.com/Shawn-Bi/TradeAgent-AI/pull/12) fixed that, and the re-run v2 sessions (`eval-v2-mini2-*`) carry the reply as the output and the search as context.
+  - PRISM evaluator ("Translation faithfulness", the rubric in `docs/kb/EVALUATOR.md`) on `openai/gpt-4.1-mini`, 63 inputs: average score 80.7 for v1 and 79.3 for v2, while the harness passes 45 and 48 and counts 11 vs 1 runs that set a value the trader never stated. The PRISM judge labelled 5 of those 11 v1 runs faithful, so where the two disagree on unit errors the harness follows the rubric.
+  - PRISM Root Cause on the 42 failed v1 `gpt-4o-mini` traces built two tentative clusters (78 and 13 affected traces), broader than the harness's unit-error cluster.
+  - Batches, files, sessions and the full comparison: [`tests/eval/RESULTS.md`](tests/eval/RESULTS.md).
 
 PRISM never blocks a request: if it is down, drafting still works and the status says `FAILED`. The Audit step shows `CONNECTED` only when PRISM accepted the trace of the Nicrron call that wrote the approved version; otherwise `LOCAL_ONLY`.
 
